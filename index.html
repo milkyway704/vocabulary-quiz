@@ -27,6 +27,7 @@
 				align-items: center;
 				gap: 10px;
 				margin-bottom: 10px;
+				flex-wrap: wrap;
 			}
 			select {
 				padding: 8px;
@@ -60,6 +61,8 @@
 				border-left: 4px solid #007bff;
 				padding-left: 10px;
 			}
+
+			/* Input & Buttons */
 			input[type="text"] {
 				width: 100%;
 				padding: 15px;
@@ -79,6 +82,30 @@
 				border: none;
 				border-radius: 8px;
 			}
+
+			/* Multiple Choice Options */
+			.options-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 10px;
+				margin-bottom: 15px;
+			}
+			.option-btn {
+				background: #fff;
+				color: #007bff;
+				border: 2px solid #007bff;
+				padding: 12px;
+				font-size: 1.1rem;
+				transition: 0.2s;
+			}
+			.option-btn:hover {
+				background: #f0f7ff;
+			}
+			.option-btn.selected {
+				background: #007bff;
+				color: #white;
+			}
+
 			.feedback {
 				margin-top: 20px;
 				padding: 15px;
@@ -101,7 +128,7 @@
 	<body>
 		<div class="setup-container">
 			<div class="setup-row">
-				<span>Range: </span>
+				<span>Range:</span>
 				<select id="start-lesson">
 					<option value="1">L1</option>
 					<option value="2">L2</option>
@@ -110,6 +137,13 @@
 				<select id="end-lesson">
 					<option value="1">L1</option>
 					<option value="2">L2</option>
+				</select>
+			</div>
+			<div class="setup-row">
+				<span>Mode:</span>
+				<select id="quiz-mode">
+					<option value="fill-in">Fill-in the Blanks</option>
+					<option value="multiple-choice">Multiple Choice</option>
 				</select>
 			</div>
 			<button
@@ -127,12 +161,20 @@
 			<div id="quiz-area" style="display: none">
 				<p class="sentence" id="sentence-text"></p>
 				<p class="translation" id="translation-text"></p>
+
 				<input
 					type="text"
 					id="user-input"
 					placeholder="Type the word..."
 					autocomplete="off"
 				/>
+
+				<div
+					id="options-container"
+					class="options-grid"
+					style="display: none"
+				></div>
+
 				<button id="submit-btn" onclick="checkAnswer()">Submit</button>
 				<div id="feedback" class="feedback"></div>
 				<button
@@ -164,12 +206,17 @@
 			// Enter key support
 			document
 				.getElementById("user-input")
-				.addEventListener("keypress", function (e) {
+				.addEventListener("keypress", (e) => {
 					if (e.key === "Enter") {
-						const submitBtn = document.getElementById("submit-btn");
-						const nextBtn = document.getElementById("next-btn");
-						if (submitBtn.style.display !== "none") checkAnswer();
-						else if (nextBtn.style.display !== "none")
+						if (
+							document.getElementById("submit-btn").style
+								.display !== "none"
+						)
+							checkAnswer();
+						else if (
+							document.getElementById("next-btn").style
+								.display !== "none"
+						)
 							nextQuestion();
 					}
 				});
@@ -181,26 +228,18 @@
 				const end = parseInt(
 					document.getElementById("end-lesson").value,
 				);
-
 				if (start > end) {
-					alert(
-						"Invalid range! 'From' must be less than or equal to 'To'.",
-					);
+					alert("Invalid range!");
 					return;
 				}
 
-				// 合併選擇範圍內的單字
 				currentQueue = [];
 				for (let i = start; i <= end; i++) {
 					const key = "L" + i;
-					if (fullWordBank[key]) {
+					if (fullWordBank[key])
 						currentQueue = currentQueue.concat(fullWordBank[key]);
-					}
 				}
-
-				// 洗牌隨機化題目 (選用，若想按順序請註解掉下一行)
 				currentQueue.sort(() => Math.random() - 0.5);
-
 				currentIndex = 0;
 				score = 0;
 				errorList = [];
@@ -217,18 +256,65 @@
 				}
 				updateStatus();
 				const q = currentQueue[currentIndex];
+				const mode = document.getElementById("quiz-mode").value;
+
 				document.getElementById("sentence-text").innerText = q.q;
 				document.getElementById("translation-text").innerText = q.t;
-				document.getElementById("user-input").value = "";
-				document.getElementById("user-input").focus();
 				document.getElementById("feedback").style.display = "none";
-				document.getElementById("submit-btn").style.display = "block";
 				document.getElementById("next-btn").style.display = "none";
+
+				if (mode === "multiple-choice") {
+					document.getElementById("user-input").style.display =
+						"none";
+					document.getElementById("submit-btn").style.display =
+						"none";
+					document.getElementById("options-container").style.display =
+						"grid";
+					generateOptions(q);
+				} else {
+					document.getElementById("user-input").style.display =
+						"block";
+					document.getElementById("submit-btn").style.display =
+						"block";
+					document.getElementById("options-container").style.display =
+						"none";
+					document.getElementById("user-input").value = "";
+					document.getElementById("user-input").focus();
+				}
 			}
 
-			function updateStatus() {
-				document.getElementById("status-text").innerText =
-					`Progress: ${currentIndex + 1} / ${currentQueue.length}`;
+			function generateOptions(correctItem) {
+				const container = document.getElementById("options-container");
+				container.innerHTML = "";
+
+				// 抓取 3 個錯誤答案
+				let distractors = [];
+				const allWords = Object.values(fullWordBank).flat();
+				distractors = allWords
+					.filter((item) => item.word !== correctItem.word)
+					.map((item) => item.word)
+					.sort(() => 0.5 - Math.random())
+					.slice(0, 3);
+
+				const options = [correctItem.word, ...distractors].sort(
+					() => 0.5 - Math.random(),
+				);
+
+				options.forEach((opt) => {
+					const btn = document.createElement("button");
+					btn.className = "option-btn";
+					btn.innerText = opt;
+					btn.onclick = () => checkChoice(opt, correctItem.word);
+					container.appendChild(btn);
+				});
+			}
+
+			function checkChoice(selected, correct) {
+				// 選擇題點擊後直接判斷
+				showFeedback(
+					selected.toLowerCase() === correct.toLowerCase(),
+					correct,
+				);
 			}
 
 			function checkAnswer() {
@@ -236,24 +322,38 @@
 					.getElementById("user-input")
 					.value.trim()
 					.toLowerCase();
-				const currentQ = currentQueue[currentIndex];
-				const feedback = document.getElementById("feedback");
+				const correct = currentQueue[currentIndex].word.toLowerCase();
+				showFeedback(
+					userAns === correct,
+					currentQueue[currentIndex].word,
+				);
+			}
 
+			function showFeedback(isCorrect, correctWord) {
+				const feedback = document.getElementById("feedback");
 				feedback.style.display = "block";
 				document.getElementById("submit-btn").style.display = "none";
+				document.getElementById("options-container").style.display =
+					"none";
 				document.getElementById("next-btn").style.display = "block";
 
-				if (userAns === currentQ.word.toLowerCase()) {
+				if (isCorrect) {
 					feedback.className = "feedback correct";
 					feedback.innerText = "Correct!";
 					score++;
 					correctSound.play();
 				} else {
 					feedback.className = "feedback wrong";
-					feedback.innerText = `Incorrect. The answer is: ${currentQ.word}`;
-					if (!errorList.includes(currentQ)) errorList.push(currentQ);
+					feedback.innerText = `Incorrect. The answer is: ${correctWord}`;
+					if (!errorList.includes(currentQueue[currentIndex]))
+						errorList.push(currentQueue[currentIndex]);
 					wrongSound.play();
 				}
+			}
+
+			function updateStatus() {
+				document.getElementById("status-text").innerText =
+					`Progress: ${currentIndex + 1} / ${currentQueue.length}`;
 			}
 
 			function nextQuestion() {
@@ -266,14 +366,10 @@
 				document.getElementById("result-area").style.display = "block";
 				document.getElementById("score-text").innerText =
 					`Final Score: ${score} / ${currentQueue.length}`;
-				document.getElementById("status-text").innerText = "Finished";
 			}
 
 			function startReview() {
-				if (errorList.length === 0) {
-					alert("No mistakes to review!");
-					return;
-				}
+				if (errorList.length === 0) return;
 				currentQueue = [...errorList];
 				errorList = [];
 				currentIndex = 0;

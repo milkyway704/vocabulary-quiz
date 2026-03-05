@@ -26,8 +26,15 @@
 			}
 			.sentence {
 				font-size: 1.4rem;
-				margin-bottom: 20px;
+				margin-bottom: 10px;
 				word-wrap: break-word;
+			}
+			.translation {
+				color: #666;
+				font-size: 1.1rem;
+				margin-bottom: 20px;
+				border-left: 4px solid #007bff;
+				padding-left: 10px;
 			}
 			input[type="text"] {
 				width: 100%;
@@ -72,6 +79,7 @@
 			<h2>Vocabulary Quiz (L1)</h2>
 			<div id="quiz-area">
 				<p class="sentence" id="sentence-text"></p>
+				<p class="translation" id="translation-text"></p>
 				<input
 					type="text"
 					id="user-input"
@@ -109,6 +117,7 @@
 				}
 				const q = currentQueue[currentIndex];
 				document.getElementById("sentence-text").innerText = q.q;
+				document.getElementById("translation-text").innerText = q.t;
 				document.getElementById("user-input").value = "";
 				document.getElementById("feedback").style.display = "none";
 			}

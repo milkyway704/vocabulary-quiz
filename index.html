@@ -73,24 +73,46 @@
 
 	<body>
 		<div class="quiz-container">
-			<h2>L1 單字挑戰</h2>
+			<h2 id="title">Vocabulary Challenge (L1)</h2>
 			<div id="quiz-area">
 				<p class="sentence" id="sentence-text"></p>
-				<p class="translation" id="translation-text"></p>
+				<p
+					class="translation"
+					id="translation-text"
+					style="display: none"
+				></p>
+				<button
+					id="hint-btn"
+					onclick="toggleHint()"
+					style="
+						background: #6c757d;
+						margin-bottom: 10px;
+						padding: 8px;
+					"
+				>
+					Show Hint (Chinese)
+				</button>
+
 				<input
 					type="text"
 					id="user-input"
-					placeholder="在此輸入單字..."
+					placeholder="Type your answer here..."
 					autocomplete="off"
 				/>
-				<button onclick="checkAnswer()">提交答案</button>
+				<button onclick="checkAnswer()">Submit</button>
 				<div id="feedback" class="feedback"></div>
 			</div>
+
 			<div id="result-area" style="display: none">
-				<h3>測驗結束！</h3>
+				<h3>Quiz Completed!</h3>
 				<p id="score-text"></p>
-				<button onclick="startReview()">重練錯題</button>
-				<button onclick="location.reload()">全部重新開始</button>
+				<button onclick="startReview()">Review Mistakes</button>
+				<button
+					onclick="location.reload()"
+					style="background: #28a745; margin-top: 10px"
+				>
+					Restart All
+				</button>
 			</div>
 		</div>
 
@@ -123,21 +145,24 @@
 				const feedback = document.getElementById("feedback");
 
 				feedback.style.display = "block";
+
 				if (userAns === correctAns) {
 					feedback.className = "feedback correct";
-					feedback.innerText = "答對了！";
+					feedback.innerText = "Excellent! Correct."; // 答對的回饋
 					score++;
 					setTimeout(() => {
 						currentIndex++;
 						showQuestion();
+						document.getElementById(
+							"translation-text",
+						).style.display = "none"; // 重置提示
 					}, 1000);
 				} else {
 					feedback.className = "feedback wrong";
-					feedback.innerText = `寫錯囉！正確答案是: ${currentQueue[currentIndex].word}`;
+					feedback.innerText = `Incorrect. The answer is: ${currentQueue[currentIndex].word}`; // 答錯的回饋
 					if (!errorList.includes(currentQueue[currentIndex])) {
 						errorList.push(currentQueue[currentIndex]);
 					}
-					// 停三秒讓學生看答案
 					setTimeout(() => {
 						currentIndex++;
 						showQuestion();
@@ -145,11 +170,18 @@
 				}
 			}
 
+			// 新增 Hint 功能切換
+			function toggleHint() {
+				const hint = document.getElementById("translation-text");
+				hint.style.display =
+					hint.style.display === "none" ? "block" : "none";
+			}
+
 			function showResult() {
 				document.getElementById("quiz-area").style.display = "none";
 				document.getElementById("result-area").style.display = "block";
 				document.getElementById("score-text").innerText =
-					`本次得分：${score} / ${currentQueue.length}`;
+					`Your Score: ${score} / ${currentQueue.length}`;
 			}
 
 			function startReview() {

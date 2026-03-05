@@ -2,7 +2,7 @@
 const fullWordBank = {
     "L1": [
         { id: 1, word: "dress", q: "Amy bought a fashionable _______ for her birthday party.", t: "洋裝", sentenceTranslation: "Amy 買了一件時尚洋裝。" },
-        { id: 2, word: "on sale", q: "The clothes in this shop are _______, so they're cheaper now.", t: "特價", sentenceTranslation: "這間商店的衣服在特價。" },
+        { id: 2, word: "on sale", q: "The clothes in this shop are _______ _______, so they're cheaper now.", t: "特價", sentenceTranslation: "這間商店的衣服在特價。" },
         { id: 3, word: "shirt", q: "Matthew is wearing a blue _______ to work.", t: "襯衫", sentenceTranslation: "Matthew 穿了一件藍色襯衫去工作。" },
         { id: 4, word: "shorts", q: "Larry usually wears _______ in the summer.", t: "短褲", sentenceTranslation: "Larry 通常在夏天穿短褲。" },
         { id: 5, word: "jeans", q: "Nick spent three thousand NT dollars on this pair of _______.", t: "牛仔褲", sentenceTranslation: "Nick 花了三千元買這條牛仔褲。" },
@@ -16,10 +16,10 @@ const fullWordBank = {
         { id: 13, word: "belt", q: "Ivy bought her father a _______ as his birthday gift.", t: "腰帶", sentenceTranslation: "Ivy 買了條腰帶給她爸爸當生日禮物。" },
         { id: 14, word: "pants", q: "These _______ were too long for me, so I didn't buy them.", t: "長褲", sentenceTranslation: "這些長褲對我來說太長了。" },
         { id: 15, word: "wallet", q: "Jason had only twenty NT dollars in his _______.", t: "錢包", sentenceTranslation: "Jason 的錢包裡只有二十元。" },
-        { id: 16, word: "a pair of", q: "I bought _______ pants on the Internet last week.", t: "一件(褲子);一雙(鞋)", sentenceTranslation: "我上週在網路上買了一件長褲。" },
+        { id: 16, word: "a pair of", q: "I bought _______ _______ _______ pants on the Internet last week.", t: "一件(褲子);一雙(鞋)", sentenceTranslation: "我上週在網路上買了一件長褲。" },
         { id: 17, word: "gloves", q: "Emily bought a pair of _______ in the department store.", t: "手套", sentenceTranslation: "Emily 在百貨公司買了一雙手套。" },
         { id: 18, word: "try on", q: "This jacket is too big. Can I _______ a smaller one?", t: "試穿", sentenceTranslation: "這件夾克太大了。我可以試穿小一點的嗎？" },
-        { id: 19, word: "take off", q: "Please _______ your hat when you go into the building.", t: "脫下", sentenceTranslation: "當你進入這棟建築物時，請脫掉你的帽子。" },
+        { id: 19, word: "take off", q: "Please _______ _______ your hat when you go into the building.", t: "脫下", sentenceTranslation: "當你進入這棟建築物時，請脫掉你的帽子。" },
         { id: 20, word: "is full of", q: "This restaurant is popular, so it _______ always _______ _______ people.", t: "充滿", sentenceTranslation: "這間餐廳受歡迎，所以它總是充滿了人。" },
         { id: 21, word: "fashionable", q: "Your jeans are so _______. Where did you get them?", t: "流行的;時尚的", sentenceTranslation: "你的牛仔褲好時尚。" },
         { id: 22, word: "as as", q: "Exercise is _______ important _______ a good night's sleep.", t: "as... as... (如同...一樣地)", sentenceTranslation: "運動如同一夜好眠一樣重要。" },
@@ -27,7 +27,7 @@ const fullWordBank = {
         { id: 24, word: "already", q: "Mia wants more shoes, but she _______ has 50 pairs.", t: "已經", sentenceTranslation: "Mia 想要買更多鞋子，但她已經有 50 雙了。" },
         { id: 25, word: "fashion", q: "Short hair is in _______ for girls now.", t: "流行;時尚", sentenceTranslation: "現在女孩子流行留短髮。" },
         { id: 26, word: "medium", q: "Ann: What size do you wear? Ben: I wear a _______.", t: "中等尺寸;中等的", sentenceTranslation: "我穿中號。" },
-        { id: 27, word: "fitting room", q: "Paul is trying on the jeans in the _______.", t: "試衣間", sentenceTranslation: "Paul 正在試衣間試穿牛仔褲。" },
+        { id: 27, word: "fitting room", q: "Paul is trying on the jeans in the _______ _______.", t: "試衣間", sentenceTranslation: "Paul 正在試衣間試穿牛仔褲。" },
         { id: 28, word: "agree", q: "Ed: I _______. He is a nice person.", t: "同意", sentenceTranslation: "Ed: 我同意。他是一個好人。" },
         { id: 29, word: "comfortable", q: "I am not _______ in these shoes. They are too small.", t: "舒服的", sentenceTranslation: "我穿這雙鞋不舒服。它們太小了。" },
         { id: 30, word: "light", q: "This jacket is really _______ and comfortable.", t: "輕薄的", sentenceTranslation: "這件夾克非常輕薄且舒適。" },
@@ -41,7 +41,7 @@ const fullWordBank = {
         { id: 38, word: "fresh", q: "Would you like some _______ strawberries?", t: "新鮮的", sentenceTranslation: "你想要來一些新鮮的草莓嗎？" },
         { id: 39, word: "means", q: "What does 'clever' mean? It _______ 'smart'.", t: "意指", sentenceTranslation: "它意指「聰明的」。" },
         { id: 40, word: "Earth", q: "There are many beautiful animals on _______.", t: "地球", sentenceTranslation: "地球上有許多美麗的動物。" },
-        { id: 41, word: "turned into", q: "The woman _______ the old coat _______ a new bag.", t: "(使)成為", sentenceTranslation: "這位女士把舊外套改造成了一個新包包。" }
+        { id: 41, word: "turned into", q: "The woman _______ _______ the old coat _______ a new bag.", t: "(使)成為", sentenceTranslation: "這位女士把舊外套改造成了一個新包包。" }
     ],
     "L2": [
         { id: 201, word: "sofa", q: "My pet cat is under the _______.", t: "沙發", sentenceTranslation: "我的寵物貓在沙發下面。" },

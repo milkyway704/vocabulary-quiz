@@ -204,7 +204,44 @@
 			<div id="result-area" style="display: none">
 				<h3>Quiz Completed</h3>
 				<p id="score-text"></p>
-				<button onclick="startReview()">Review Mistakes</button>
+
+				<div id="mistake-list-container" style="margin: 20px 0">
+					<h4>Review Mistakes:</h4>
+					<table
+						id="mistake-table"
+						style="
+							width: 100%;
+							border-collapse: collapse;
+							margin-bottom: 20px;
+						"
+					>
+						<thead>
+							<tr style="background: #f8f9fa">
+								<th
+									style="border: 1px solid #ddd; padding: 8px"
+								>
+									Word
+								</th>
+								<th
+									style="border: 1px solid #ddd; padding: 8px"
+								>
+									Meaning
+								</th>
+							</tr>
+						</thead>
+						<tbody id="mistake-table-body"></tbody>
+					</table>
+				</div>
+
+				<button onclick="startReview()" id="review-btn">
+					Review Mistakes
+				</button>
+				<button
+					onclick="location.reload()"
+					style="background: #6c757d; margin-top: 10px"
+				>
+					New Quiz
+				</button>
 			</div>
 		</div>
 
@@ -403,6 +440,32 @@
 				document.getElementById("result-area").style.display = "block";
 				document.getElementById("score-text").innerText =
 					`Final Score: ${score} / ${currentQueue.length}`;
+
+				const tbody = document.getElementById("mistake-table-body");
+				const container = document.getElementById(
+					"mistake-list-container",
+				);
+				const reviewBtn = document.getElementById("review-btn");
+
+				tbody.innerHTML = ""; // 清空舊內容
+
+				if (errorList.length > 0) {
+					container.style.display = "block";
+					reviewBtn.style.display = "inline-block";
+
+					errorList.forEach((item) => {
+						const row = `<tr>
+							<td style="border: 1px solid #ddd; padding: 8px;">${item.word}</td>
+							<td style="border: 1px solid #ddd; padding: 8px;">${item.t}</td>
+						</tr>`;
+						tbody.innerHTML += row;
+					});
+				} else {
+					container.style.display = "none";
+					reviewBtn.style.display = "none";
+					tbody.innerHTML =
+						"<tr><td colspan='2' style='text-align:center;'>Perfect! No mistakes.</td></tr>";
+				}
 			}
 
 			function startReview() {

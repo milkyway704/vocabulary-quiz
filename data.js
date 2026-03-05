@@ -1,7 +1,4 @@
 // data.js
-const wordBank = [
-;
-// data.js
 const fullWordBank = {
     "L1": [
         { id: 1, word: "dress", q: "Amy bought a fashionable _______ for her birthday party.", t: "Amy 買了一件時尚洋裝。" },

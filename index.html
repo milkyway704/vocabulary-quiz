@@ -454,9 +454,10 @@
 					reviewBtn.style.display = "inline-block";
 
 					errorList.forEach((item) => {
+						// 這裡顯示 item.word (英文) 和 item.meaning (單字字義)
 						const row = `<tr>
 							<td style="border: 1px solid #ddd; padding: 8px;">${item.word}</td>
-							<td style="border: 1px solid #ddd; padding: 8px;">${item.t}</td>
+							<td style="border: 1px solid #ddd; padding: 8px;">${item.sentenceTranslation || "N/A"}</td>
 						</tr>`;
 						tbody.innerHTML += row;
 					});
@@ -467,7 +468,6 @@
 						"<tr><td colspan='2' style='text-align:center;'>Perfect! No mistakes.</td></tr>";
 				}
 			}
-
 			function startReview() {
 				if (errorList.length === 0) return;
 				currentQueue = [...errorList];

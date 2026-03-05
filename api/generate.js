@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     const prompt = `Target word: "${word}". Generate 3 incorrect but plausible English vocabulary distractors for a junior high school student. Return only the 3 words separated by commas.`;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

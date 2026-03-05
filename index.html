@@ -312,7 +312,8 @@
 				const mode = document.getElementById("quiz-mode").value;
 
 				document.getElementById("sentence-text").innerText = q.q;
-				document.getElementById("translation-text").innerText = q.t;
+				document.getElementById("translation-text").innerText =
+					q.sentenceTranslation;
 				document.getElementById("feedback").style.display = "none";
 				document.getElementById("next-btn").style.display = "none";
 
@@ -457,7 +458,7 @@
 						// 這裡顯示 item.word (英文) 和 item.meaning (單字字義)
 						const row = `<tr>
 							<td style="border: 1px solid #ddd; padding: 8px;">${item.word}</td>
-							<td style="border: 1px solid #ddd; padding: 8px;">${item.sentenceTranslation || "N/A"}</td>
+							<td style="border: 1px solid #ddd; padding: 8px;">${item.t || "N/A"}</td>
 						</tr>`;
 						tbody.innerHTML += row;
 					});

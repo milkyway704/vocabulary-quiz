@@ -101,10 +101,6 @@
 			.option-btn:hover {
 				background: #f0f7ff;
 			}
-			.option-btn.selected {
-				background: #007bff;
-				color: #white;
-			}
 
 			.feedback {
 				margin-top: 20px;
@@ -123,6 +119,14 @@
 				color: #155724;
 				border: 1px solid #c3e6cb;
 			}
+			.ai-toggle-label {
+				display: flex;
+				align-items: center;
+				cursor: pointer;
+				font-size: 0.9rem;
+				color: #444;
+				user-select: none;
+			}
 		</style>
 	</head>
 	<body>
@@ -139,24 +143,24 @@
 					<option value="2">L2</option>
 				</select>
 			</div>
+
 			<div class="setup-row">
-				<label
-					style="
-						display: flex;
-						align-items: center;
-						cursor: pointer;
-						font-size: 0.9rem;
-						color: #444;
-					"
-				>
+				<span>Mode:</span>
+				<select id="quiz-mode">
+					<option value="fill-in">Fill-in the Blanks</option>
+					<option value="multiple-choice">Multiple Choice</option>
+				</select>
+
+				<label class="ai-toggle-label">
 					<input
 						type="checkbox"
 						id="use-ai-toggle"
-						style="width: auto; margin-right: 8px"
+						style="width: auto; margin-right: 5px"
 					/>
 					Use AI
 				</label>
 			</div>
+
 			<button
 				onclick="startNewQuiz()"
 				style="padding: 10px; font-size: 1rem; background: #6c757d"
@@ -239,6 +243,7 @@
 				const end = parseInt(
 					document.getElementById("end-lesson").value,
 				);
+
 				if (start > end) {
 					alert("Invalid range!");
 					return;
@@ -281,7 +286,6 @@
 						"none";
 					document.getElementById("options-container").style.display =
 						"grid";
-					console.log("multiple-choice, ready to call ai");
 					await generateOptions(q);
 				} else {
 					document.getElementById("user-input").style.display =
@@ -297,12 +301,11 @@
 
 			async function generateOptions(correctItem) {
 				const container = document.getElementById("options-container");
-				const useAI = document.getElementById("use-ai-toggle").checked; // 檢查是否勾選
+				const useAI = document.getElementById("use-ai-toggle").checked;
 
 				let distractors = [];
 				let isAiSuccess = false;
 
-				// 如果有勾選 AI 且目前是選擇題模式
 				if (useAI) {
 					container.innerHTML =
 						"<div style='grid-column: 1/-1; text-align:center;'>🤖 AI Thinking...</div>";
@@ -318,14 +321,10 @@
 							isAiSuccess = true;
 						}
 					} catch (error) {
-						console.error(
-							"AI 獲取失敗，自動切換至本地備案:",
-							error,
-						);
+						console.error("AI 獲取失敗:", error);
 					}
 				}
 
-				// 如果「沒勾選 AI」或是「AI 呼叫失敗」，執行原本的本地隨機邏輯
 				if (!isAiSuccess) {
 					const allWords = Object.values(fullWordBank).flat();
 					distractors = allWords
@@ -335,7 +334,6 @@
 						.slice(0, 3);
 				}
 
-				// 渲染按鈕（這部分邏輯不變）
 				const options = [correctItem.word, ...distractors].sort(
 					() => 0.5 - Math.random(),
 				);
@@ -350,7 +348,6 @@
 			}
 
 			function checkChoice(selected, correct) {
-				// 選擇題點擊後直接判斷
 				showFeedback(
 					selected.toLowerCase() === correct.toLowerCase(),
 					correct,
@@ -381,13 +378,13 @@
 					feedback.className = "feedback correct";
 					feedback.innerText = "Correct!";
 					score++;
-					correctSound.play();
+					correctSound.play().catch(() => {});
 				} else {
 					feedback.className = "feedback wrong";
 					feedback.innerText = `Incorrect. The answer is: ${correctWord}`;
 					if (!errorList.includes(currentQueue[currentIndex]))
 						errorList.push(currentQueue[currentIndex]);
-					wrongSound.play();
+					wrongSound.play().catch(() => {});
 				}
 			}
 

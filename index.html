@@ -1,57 +1,45 @@
 <!doctype html>
-<html lang="zh-TW">
+<html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<meta
 			name="viewport"
 			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
 		/>
-		<title>國二英文單字小測驗</title>
+		<title>Vocabulary Quiz</title>
 		<style>
-			/* 修改 CSS 讓它占滿畫面 */
 			body {
 				font-family: Arial, sans-serif;
-				max-width: 100%; /* 從 600px 改為 100% */
+				max-width: 100%;
 				margin: 0;
 				padding: 15px;
-				box-sizing: border-box; /* 確保 padding 不會撐破畫面 */
+				box-sizing: border-box;
 				background-color: #f4f7f9;
 			}
-
 			.quiz-container {
 				background: white;
-				border: 1px solid #ddd;
 				padding: 20px;
-				border-radius: 12px; /* 圓角加大一點比較美觀 */
+				border-radius: 12px;
 				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 				width: 100%;
 				box-sizing: border-box;
 			}
-
 			.sentence {
-				font-size: 1.4rem; /* 加大題目字體 */
-				margin-bottom: 15px;
-				word-wrap: break-word; /* 防止長單字溢出 */
+				font-size: 1.4rem;
+				margin-bottom: 20px;
+				word-wrap: break-word;
 			}
-
-			.translation {
-				color: #666;
-				font-size: 1.1rem; /* 加大翻譯字體 */
-				margin-bottom: 25px;
-			}
-
 			input[type="text"] {
 				width: 100%;
-				padding: 15px; /* 加大輸入框，方便手指點擊 */
+				padding: 15px;
 				font-size: 1.2rem;
 				margin-bottom: 15px;
 				border: 2px solid #007bff;
 				border-radius: 8px;
 				box-sizing: border-box;
 			}
-
 			button {
-				width: 100%; /* 按鈕占滿寬度，方便手指按 */
+				width: 100%;
 				padding: 15px;
 				font-size: 1.2rem;
 				cursor: pointer;
@@ -60,43 +48,34 @@
 				border: none;
 				border-radius: 8px;
 			}
-
-			/* 調整回饋訊息的字體 */
 			.feedback {
 				margin-top: 20px;
 				padding: 15px;
 				font-size: 1.1rem;
 				border-radius: 8px;
+				display: none;
+			}
+			.wrong {
+				background: #f8d7da;
+				color: #721c24;
+				border: 1px solid #f5c6cb;
+			}
+			.correct {
+				background: #d4edda;
+				color: #155724;
+				border: 1px solid #c3e6cb;
 			}
 		</style>
 	</head>
-
 	<body>
 		<div class="quiz-container">
-			<h2 id="title">Vocabulary Challenge (L1)</h2>
+			<h2>Vocabulary Quiz (L1)</h2>
 			<div id="quiz-area">
 				<p class="sentence" id="sentence-text"></p>
-				<p
-					class="translation"
-					id="translation-text"
-					style="display: none"
-				></p>
-				<button
-					id="hint-btn"
-					onclick="toggleHint()"
-					style="
-						background: #6c757d;
-						margin-bottom: 10px;
-						padding: 8px;
-					"
-				>
-					Show Hint (Chinese)
-				</button>
-
 				<input
 					type="text"
 					id="user-input"
-					placeholder="Type your answer here..."
+					placeholder="Type the word..."
 					autocomplete="off"
 				/>
 				<button onclick="checkAnswer()">Submit</button>
@@ -104,12 +83,12 @@
 			</div>
 
 			<div id="result-area" style="display: none">
-				<h3>Quiz Completed!</h3>
+				<h3>Quiz Completed</h3>
 				<p id="score-text"></p>
 				<button onclick="startReview()">Review Mistakes</button>
 				<button
 					onclick="location.reload()"
-					style="background: #28a745; margin-top: 10px"
+					style="background: #6c757d; margin-top: 10px"
 				>
 					Restart All
 				</button>
@@ -130,7 +109,6 @@
 				}
 				const q = currentQueue[currentIndex];
 				document.getElementById("sentence-text").innerText = q.q;
-				document.getElementById("translation-text").innerText = q.t;
 				document.getElementById("user-input").value = "";
 				document.getElementById("feedback").style.display = "none";
 			}
@@ -145,21 +123,17 @@
 				const feedback = document.getElementById("feedback");
 
 				feedback.style.display = "block";
-
 				if (userAns === correctAns) {
 					feedback.className = "feedback correct";
-					feedback.innerText = "Excellent! Correct."; // 答對的回饋
+					feedback.innerText = "Correct!";
 					score++;
 					setTimeout(() => {
 						currentIndex++;
 						showQuestion();
-						document.getElementById(
-							"translation-text",
-						).style.display = "none"; // 重置提示
 					}, 1000);
 				} else {
 					feedback.className = "feedback wrong";
-					feedback.innerText = `Incorrect. The answer is: ${currentQueue[currentIndex].word}`; // 答錯的回饋
+					feedback.innerText = `Incorrect. The answer is: ${currentQueue[currentIndex].word}`;
 					if (!errorList.includes(currentQueue[currentIndex])) {
 						errorList.push(currentQueue[currentIndex]);
 					}
@@ -174,12 +148,11 @@
 				document.getElementById("quiz-area").style.display = "none";
 				document.getElementById("result-area").style.display = "block";
 				document.getElementById("score-text").innerText =
-					`Your Score: ${score} / ${currentQueue.length}`;
+					`Score: ${score} / ${currentQueue.length}`;
 			}
 
 			function startReview() {
 				if (errorList.length === 0) {
-					alert("太棒了，沒有錯題需要重練！");
 					location.reload();
 					return;
 				}

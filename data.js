@@ -21,7 +21,7 @@ const wordBank = [
     { id: 19, word: "take off", q: "Please _______ your hat when you go into the building.", t: "當你進入這棟建築物時，請脫掉你的帽子。" },
     { id: 20, word: "is full of", q: "This restaurant is popular, so it _______ always _______  _______ people.", t: "這間餐廳受歡迎，所以它總是充滿了人。" },
     { id: 21, word: "fashionable", q: "Your jeans are so _______. Where did you get them?", t: "你的牛仔褲好時尚。" },
-    { id: 22, word: "as; as", q: "Exercise is _______ important _______ a good night's sleep.", t: "運動如同一夜好眠一樣重要。" },
+    { id: 22, word: "as as", q: "Exercise is _______ important _______ a good night's sleep.", t: "運動如同一夜好眠一樣重要。" },
     { id: 23, word: "than", q: "Your bag is heavier _______ mine.", t: "你的包包比我的重。" },
     { id: 24, word: "already", q: "Mia wants more shoes, but she _______ has 50 pairs.", t: "Mia 想要買更多鞋子，但她已經有 50 雙了。" },
     { id: 25, word: "fashion", q: "Short hair is in _______ for girls now.", t: "現在女孩子流行留短髮。" },

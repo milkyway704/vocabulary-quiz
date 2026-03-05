@@ -16,6 +16,24 @@
 				box-sizing: border-box;
 				background-color: #f4f7f9;
 			}
+			.setup-container {
+				background: #e9ecef;
+				padding: 15px;
+				border-radius: 12px;
+				margin-bottom: 15px;
+			}
+			.setup-row {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				margin-bottom: 10px;
+			}
+			select {
+				padding: 8px;
+				border-radius: 5px;
+				border: 1px solid #ccc;
+				font-size: 1rem;
+			}
 			.status-bar {
 				font-size: 0.9rem;
 				color: #555;
@@ -81,11 +99,32 @@
 		</style>
 	</head>
 	<body>
-		<div class="quiz-container">
-			<div class="status-bar" id="status-text">Progress: 0 / 0</div>
+		<div class="setup-container">
+			<div class="setup-row">
+				<span>Range: </span>
+				<select id="start-lesson">
+					<option value="1">L1</option>
+					<option value="2">L2</option>
+				</select>
+				<span>to</span>
+				<select id="end-lesson">
+					<option value="1">L1</option>
+					<option value="2">L2</option>
+				</select>
+			</div>
+			<button
+				onclick="startNewQuiz()"
+				style="padding: 10px; font-size: 1rem; background: #6c757d"
+			>
+				Start New Quiz
+			</button>
+		</div>
 
-			<h2>Vocabulary Quiz (L1)</h2>
-			<div id="quiz-area">
+		<div class="quiz-container">
+			<div class="status-bar" id="status-text">
+				Select range and start
+			</div>
+			<div id="quiz-area" style="display: none">
 				<p class="sentence" id="sentence-text"></p>
 				<p class="translation" id="translation-text"></p>
 				<input
@@ -94,7 +133,6 @@
 					placeholder="Type the word..."
 					autocomplete="off"
 				/>
-
 				<button id="submit-btn" onclick="checkAnswer()">Submit</button>
 				<div id="feedback" class="feedback"></div>
 				<button
@@ -110,42 +148,63 @@
 				<h3>Quiz Completed</h3>
 				<p id="score-text"></p>
 				<button onclick="startReview()">Review Mistakes</button>
-				<button
-					onclick="location.reload()"
-					style="background: #6c757d; margin-top: 10px"
-				>
-					Restart All
-				</button>
 			</div>
 		</div>
 
 		<script src="data.js"></script>
 		<script>
-			let currentQueue = [...wordBank];
+			let currentQueue = [];
 			let errorList = [];
 			let currentIndex = 0;
 			let score = 0;
 
-			// 2. 監聽 Enter 鍵邏輯
+			// Enter key support
 			document
 				.getElementById("user-input")
 				.addEventListener("keypress", function (e) {
 					if (e.key === "Enter") {
 						const submitBtn = document.getElementById("submit-btn");
 						const nextBtn = document.getElementById("next-btn");
-
-						// 如果 Submit 按鈕可見，就執行提交；否則如果 Next 按鈕可見，就執行下一題
-						if (submitBtn.style.display !== "none") {
-							checkAnswer();
-						} else if (nextBtn.style.display !== "none") {
+						if (submitBtn.style.display !== "none") checkAnswer();
+						else if (nextBtn.style.display !== "none")
 							nextQuestion();
-						}
 					}
 				});
 
-			function updateStatus() {
-				document.getElementById("status-text").innerText =
-					`Progress: ${currentIndex + 1} / ${currentQueue.length}`;
+			function startNewQuiz() {
+				const start = parseInt(
+					document.getElementById("start-lesson").value,
+				);
+				const end = parseInt(
+					document.getElementById("end-lesson").value,
+				);
+
+				if (start > end) {
+					alert(
+						"Invalid range! 'From' must be less than or equal to 'To'.",
+					);
+					return;
+				}
+
+				// 合併選擇範圍內的單字
+				currentQueue = [];
+				for (let i = start; i <= end; i++) {
+					const key = "L" + i;
+					if (fullWordBank[key]) {
+						currentQueue = currentQueue.concat(fullWordBank[key]);
+					}
+				}
+
+				// 洗牌隨機化題目 (選用，若想按順序請註解掉下一行)
+				currentQueue.sort(() => Math.random() - 0.5);
+
+				currentIndex = 0;
+				score = 0;
+				errorList = [];
+
+				document.getElementById("quiz-area").style.display = "block";
+				document.getElementById("result-area").style.display = "none";
+				showQuestion();
 			}
 
 			function showQuestion() {
@@ -160,6 +219,13 @@
 				document.getElementById("user-input").value = "";
 				document.getElementById("user-input").focus();
 				document.getElementById("feedback").style.display = "none";
+				document.getElementById("submit-btn").style.display = "block";
+				document.getElementById("next-btn").style.display = "none";
+			}
+
+			function updateStatus() {
+				document.getElementById("status-text").innerText =
+					`Progress: ${currentIndex + 1} / ${currentQueue.length}`;
 			}
 
 			function checkAnswer() {
@@ -168,46 +234,39 @@
 					.value.trim()
 					.toLowerCase();
 				const currentQ = currentQueue[currentIndex];
-				const correctAns = currentQ.word.toLowerCase();
 				const feedback = document.getElementById("feedback");
-				const submitBtn = document.getElementById("submit-btn");
-				const nextBtn = document.getElementById("next-btn");
 
 				feedback.style.display = "block";
-				submitBtn.style.display = "none";
-				nextBtn.style.display = "block";
+				document.getElementById("submit-btn").style.display = "none";
+				document.getElementById("next-btn").style.display = "block";
 
-				if (userAns === correctAns) {
+				if (userAns === currentQ.word.toLowerCase()) {
 					feedback.className = "feedback correct";
 					feedback.innerText = "Correct!";
 					score++;
 				} else {
 					feedback.className = "feedback wrong";
 					feedback.innerText = `Incorrect. The answer is: ${currentQ.word}`;
-					if (!errorList.includes(currentQ)) {
-						errorList.push(currentQ);
-					}
+					if (!errorList.includes(currentQ)) errorList.push(currentQ);
 				}
 			}
 
 			function nextQuestion() {
 				currentIndex++;
-				document.getElementById("submit-btn").style.display = "block";
-				document.getElementById("next-btn").style.display = "none";
 				showQuestion();
 			}
 
 			function showResult() {
-				document.getElementById("status-text").innerText = "Finished";
 				document.getElementById("quiz-area").style.display = "none";
 				document.getElementById("result-area").style.display = "block";
 				document.getElementById("score-text").innerText =
-					`Score: ${score} / ${currentQueue.length}`;
+					`Final Score: ${score} / ${currentQueue.length}`;
+				document.getElementById("status-text").innerText = "Finished";
 			}
 
 			function startReview() {
 				if (errorList.length === 0) {
-					location.reload();
+					alert("No mistakes to review!");
 					return;
 				}
 				currentQueue = [...errorList];
@@ -218,8 +277,6 @@
 				document.getElementById("result-area").style.display = "none";
 				showQuestion();
 			}
-
-			showQuestion();
 		</script>
 	</body>
 </html>

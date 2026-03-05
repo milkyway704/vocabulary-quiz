@@ -16,6 +16,12 @@
 				box-sizing: border-box;
 				background-color: #f4f7f9;
 			}
+			.status-bar {
+				font-size: 0.9rem;
+				color: #555;
+				margin-bottom: 10px;
+				text-align: right;
+			}
 			.quiz-container {
 				background: white;
 				padding: 20px;
@@ -76,6 +82,8 @@
 	</head>
 	<body>
 		<div class="quiz-container">
+			<div class="status-bar" id="status-text">Progress: 0 / 0</div>
+
 			<h2>Vocabulary Quiz (L1)</h2>
 			<div id="quiz-area">
 				<p class="sentence" id="sentence-text"></p>
@@ -88,9 +96,7 @@
 				/>
 
 				<button id="submit-btn" onclick="checkAnswer()">Submit</button>
-
 				<div id="feedback" class="feedback"></div>
-
 				<button
 					id="next-btn"
 					onclick="nextQuestion()"
@@ -120,6 +126,42 @@
 			let currentIndex = 0;
 			let score = 0;
 
+			// 2. 監聽 Enter 鍵邏輯
+			document
+				.getElementById("user-input")
+				.addEventListener("keypress", function (e) {
+					if (e.key === "Enter") {
+						const submitBtn = document.getElementById("submit-btn");
+						const nextBtn = document.getElementById("next-btn");
+
+						// 如果 Submit 按鈕可見，就執行提交；否則如果 Next 按鈕可見，就執行下一題
+						if (submitBtn.style.display !== "none") {
+							checkAnswer();
+						} else if (nextBtn.style.display !== "none") {
+							nextQuestion();
+						}
+					}
+				});
+
+			function updateStatus() {
+				document.getElementById("status-text").innerText =
+					`Progress: ${currentIndex + 1} / ${currentQueue.length}`;
+			}
+
+			function showQuestion() {
+				if (currentIndex >= currentQueue.length) {
+					showResult();
+					return;
+				}
+				updateStatus();
+				const q = currentQueue[currentIndex];
+				document.getElementById("sentence-text").innerText = q.q;
+				document.getElementById("translation-text").innerText = q.t;
+				document.getElementById("user-input").value = "";
+				document.getElementById("user-input").focus();
+				document.getElementById("feedback").style.display = "none";
+			}
+
 			function checkAnswer() {
 				const userAns = document
 					.getElementById("user-input")
@@ -132,8 +174,8 @@
 				const nextBtn = document.getElementById("next-btn");
 
 				feedback.style.display = "block";
-				submitBtn.style.display = "none"; // 隱藏提交按鈕
-				nextBtn.style.display = "block"; // 顯示下一題按鈕
+				submitBtn.style.display = "none";
+				nextBtn.style.display = "block";
 
 				if (userAns === correctAns) {
 					feedback.className = "feedback correct";
@@ -150,25 +192,17 @@
 
 			function nextQuestion() {
 				currentIndex++;
-
-				// 恢復按鈕狀態
 				document.getElementById("submit-btn").style.display = "block";
 				document.getElementById("next-btn").style.display = "none";
-
 				showQuestion();
 			}
 
-			function showQuestion() {
-				if (currentIndex >= currentQueue.length) {
-					showResult();
-					return;
-				}
-				const q = currentQueue[currentIndex];
-				document.getElementById("sentence-text").innerText = q.q;
-				document.getElementById("translation-text").innerText = q.t;
-				document.getElementById("user-input").value = "";
-				document.getElementById("user-input").focus(); // 自動聚焦輸入框
-				document.getElementById("feedback").style.display = "none";
+			function showResult() {
+				document.getElementById("status-text").innerText = "Finished";
+				document.getElementById("quiz-area").style.display = "none";
+				document.getElementById("result-area").style.display = "block";
+				document.getElementById("score-text").innerText =
+					`Score: ${score} / ${currentQueue.length}`;
 			}
 
 			function startReview() {

@@ -101,6 +101,14 @@
 					Restart All
 				</button>
 			</div>
+
+			<button
+				id="next-btn"
+				onclick="nextQuestion()"
+				style="display: none; background: #28a745; margin-top: 10px"
+			>
+				Next Question
+			</button>
 		</div>
 
 		<script src="data.js"></script>
@@ -109,6 +117,44 @@
 			let errorList = [];
 			let currentIndex = 0;
 			let score = 0;
+
+			function checkAnswer() {
+				const userAns = document
+					.getElementById("user-input")
+					.value.trim()
+					.toLowerCase();
+				const currentQ = currentQueue[currentIndex];
+				const correctAns = currentQ.word.toLowerCase();
+				const feedback = document.getElementById("feedback");
+				const submitBtn = document.getElementById("submit-btn");
+				const nextBtn = document.getElementById("next-btn");
+
+				feedback.style.display = "block";
+				submitBtn.style.display = "none"; // 隱藏提交按鈕
+				nextBtn.style.display = "block"; // 顯示下一題按鈕
+
+				if (userAns === correctAns) {
+					feedback.className = "feedback correct";
+					feedback.innerText = "Correct!";
+					score++;
+				} else {
+					feedback.className = "feedback wrong";
+					feedback.innerText = `Incorrect. The answer is: ${currentQ.word}`;
+					if (!errorList.includes(currentQ)) {
+						errorList.push(currentQ);
+					}
+				}
+			}
+
+			function nextQuestion() {
+				currentIndex++;
+
+				// 恢復按鈕狀態
+				document.getElementById("submit-btn").style.display = "block";
+				document.getElementById("next-btn").style.display = "none";
+
+				showQuestion();
+			}
 
 			function showQuestion() {
 				if (currentIndex >= currentQueue.length) {
@@ -119,45 +165,8 @@
 				document.getElementById("sentence-text").innerText = q.q;
 				document.getElementById("translation-text").innerText = q.t;
 				document.getElementById("user-input").value = "";
+				document.getElementById("user-input").focus(); // 自動聚焦輸入框
 				document.getElementById("feedback").style.display = "none";
-			}
-
-			function checkAnswer() {
-				const userAns = document
-					.getElementById("user-input")
-					.value.trim()
-					.toLowerCase();
-				const correctAns =
-					currentQueue[currentIndex].word.toLowerCase();
-				const feedback = document.getElementById("feedback");
-
-				feedback.style.display = "block";
-				if (userAns === correctAns) {
-					feedback.className = "feedback correct";
-					feedback.innerText = "Correct!";
-					score++;
-					setTimeout(() => {
-						currentIndex++;
-						showQuestion();
-					}, 1000);
-				} else {
-					feedback.className = "feedback wrong";
-					feedback.innerText = `Incorrect. The answer is: ${currentQueue[currentIndex].word}`;
-					if (!errorList.includes(currentQueue[currentIndex])) {
-						errorList.push(currentQueue[currentIndex]);
-					}
-					setTimeout(() => {
-						currentIndex++;
-						showQuestion();
-					}, 3000);
-				}
-			}
-
-			function showResult() {
-				document.getElementById("quiz-area").style.display = "none";
-				document.getElementById("result-area").style.display = "block";
-				document.getElementById("score-text").innerText =
-					`Score: ${score} / ${currentQueue.length}`;
 			}
 
 			function startReview() {

@@ -249,7 +249,7 @@
 				showQuestion();
 			}
 
-			function showQuestion() {
+			async function showQuestion() {
 				if (currentIndex >= currentQueue.length) {
 					showResult();
 					return;
@@ -271,7 +271,7 @@
 					document.getElementById("options-container").style.display =
 						"grid";
 					console.log("multiple-choice, ready to call ai");
-					generateOptions(q);
+					await generateOptions(q);
 				} else {
 					document.getElementById("user-input").style.display =
 						"block";

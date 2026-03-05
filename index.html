@@ -153,6 +153,9 @@
 
 		<script src="data.js"></script>
 		<script>
+			const correctSound = new Audio("./assets/correct.wav");
+			const wrongSound = new Audio("./assets/wrong.wav");
+
 			let currentQueue = [];
 			let errorList = [];
 			let currentIndex = 0;
@@ -244,10 +247,12 @@
 					feedback.className = "feedback correct";
 					feedback.innerText = "Correct!";
 					score++;
+					correctSound.play();
 				} else {
 					feedback.className = "feedback wrong";
 					feedback.innerText = `Incorrect. The answer is: ${currentQ.word}`;
 					if (!errorList.includes(currentQ)) errorList.push(currentQ);
+					wrongSound.play();
 				}
 			}
 

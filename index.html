@@ -283,23 +283,48 @@
 				}
 			}
 
-			function generateOptions(correctItem) {
+			async function generateOptions(correctItem) {
 				const container = document.getElementById("options-container");
-				container.innerHTML = "";
+				container.innerHTML =
+					"<div style='grid-column: 1/-1; text-align:center;'>Loading AI options...</div>";
 
-				// 抓取 3 個錯誤答案
 				let distractors = [];
-				const allWords = Object.values(fullWordBank).flat();
-				distractors = allWords
-					.filter((item) => item.word !== correctItem.word)
-					.map((item) => item.word)
-					.sort(() => 0.5 - Math.random())
-					.slice(0, 3);
 
+				try {
+					// 呼叫你在 Vercel 建立的 API 端點
+					const response = await fetch(
+						`/api/generate?word=${encodeURIComponent(correctItem.word)}`,
+					);
+					const data = await response.json();
+
+					if (data.distractors) {
+						// 解析回傳的字串 "word1, word2, word3"
+						distractors = data.distractors
+							.split(",")
+							.map((w) => w.trim());
+					} else {
+						throw new Error("No distractors received");
+					}
+				} catch (error) {
+					console.error(
+						"AI Error, falling back to local database:",
+						error,
+					);
+					// 備案邏輯：如果 AI 出錯或網路斷線，改用原本的隨機抓取法
+					const allWords = Object.values(fullWordBank).flat();
+					distractors = allWords
+						.filter((item) => item.word !== correctItem.word)
+						.map((item) => item.word)
+						.sort(() => 0.5 - Math.random())
+						.slice(0, 3);
+				}
+
+				// 合併正確答案並隨機排序
 				const options = [correctItem.word, ...distractors].sort(
 					() => 0.5 - Math.random(),
 				);
 
+				container.innerHTML = ""; // 清空 Loading 字樣
 				options.forEach((opt) => {
 					const btn = document.createElement("button");
 					btn.className = "option-btn";

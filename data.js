@@ -18,7 +18,7 @@ const fullWordBank = {
         { id: 15, word: "wallet", q: "Jason had only twenty NT dollars in his _______.", t: "錢包", sentenceTranslation: "Jason 的錢包裡只有二十元。" },
         { id: 16, word: "a pair of", q: "I bought _______ _______ _______ pants on the Internet last week.", t: "一件(褲子);一雙(鞋)", sentenceTranslation: "我上週在網路上買了一件長褲。" },
         { id: 17, word: "gloves", q: "Emily bought a pair of _______ in the department store.", t: "手套", sentenceTranslation: "Emily 在百貨公司買了一雙手套。" },
-        { id: 18, word: "try on", q: "This jacket is too big. Can I _______ a smaller one?", t: "試穿", sentenceTranslation: "這件夾克太大了。我可以試穿小一點的嗎？" },
+        { id: 18, word: "try on", q: "This jacket is too big. Can I _______ _______ a smaller one?", t: "試穿", sentenceTranslation: "這件夾克太大了。我可以試穿小一點的嗎？" },
         { id: 19, word: "take off", q: "Please _______ _______ your hat when you go into the building.", t: "脫下", sentenceTranslation: "當你進入這棟建築物時，請脫掉你的帽子。" },
         { id: 20, word: "is full of", q: "This restaurant is popular, so it _______ always _______ _______ people.", t: "充滿", sentenceTranslation: "這間餐廳受歡迎，所以它總是充滿了人。" },
         { id: 21, word: "fashionable", q: "Your jeans are so _______. Where did you get them?", t: "流行的;時尚的", sentenceTranslation: "你的牛仔褲好時尚。" },

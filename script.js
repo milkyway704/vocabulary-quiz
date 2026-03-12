@@ -6,28 +6,19 @@ let errorList = [];
 let currentIndex = 0;
 let score = 0;
 
-// Keyboard Support
-document.getElementById("user-input").addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-        if (document.getElementById("submit-btn").style.display !== "none") checkAnswer();
-        else if (document.getElementById("next-btn").style.display !== "none") nextQuestion();
-    }
-});
-
-function playSound(type) {
-    const sound = (type === "correct") ? correctSound : wrongSound;
-    sound.currentTime = 0;
-    sound.play().catch(() => {});
+// 1. 初始化按鈕邏輯
+function selectMainMode(mode) {
+    document.getElementById("selected-mode-label").innerText = (mode === 'vocabulary' ? "Vocabulary Mode" : "Grammar Mode");
+    document.getElementById("mode-selection").style.display = "none";
+    document.getElementById("setup-options").style.display = "block";
 }
 
-function exitQuiz() {
-    if (confirm("Are you sure you want to quit this quiz?")) {
-        document.getElementById("quiz-area").style.display = "none";
-        document.getElementById("result-area").style.display = "none";
-        document.getElementById("setup-options").style.display = "block";
-    }
+function backToModeSelection() {
+    document.getElementById("mode-selection").style.display = "block";
+    document.getElementById("setup-options").style.display = "none";
 }
 
+// 2. 核心邏輯
 async function startNewQuiz() {
     const start = parseInt(document.getElementById("start-lesson").value);
     const end = parseInt(document.getElementById("end-lesson").value);
@@ -44,83 +35,23 @@ async function startNewQuiz() {
     currentQueue.sort(() => Math.random() - 0.5);
     if (amount !== "all") currentQueue = currentQueue.slice(0, parseInt(amount));
 
-    currentIndex = 0;
-    score = 0;
-    errorList = [];
-
+    currentIndex = 0; score = 0; errorList = [];
     document.getElementById("setup-options").style.display = "none";
     document.getElementById("quiz-area").style.display = "block";
-    document.getElementById("result-area").style.display = "none";
     showQuestion();
 }
 
-async function showQuestion() {
-    if (currentIndex >= currentQueue.length) return showResult();
-
+function checkAnswer() {
     const q = currentQueue[currentIndex];
-    const mode = document.getElementById("quiz-mode").value;
-
-    document.getElementById("status-text").innerText = `Progress: ${currentIndex + 1} / ${currentQueue.length}`;
-    document.getElementById("sentence-text").innerText = q.q;
-    document.getElementById("translation-text").innerText = q.sentenceTranslation;
-    document.getElementById("feedback").style.display = "none";
-    document.getElementById("next-btn").style.display = "none";
-
-    if (mode === "multiple-choice") {
-        setupMultipleChoice(q);
-    } else {
-        document.getElementById("user-input").style.display = "block";
-        document.getElementById("submit-btn").style.display = "block";
-        document.getElementById("options-container").style.display = "none";
-        document.getElementById("user-input").value = "";
-        document.getElementById("user-input").focus();
-    }
-}
-
-async function setupMultipleChoice(q) {
-    const container = document.getElementById("options-container");
-    const useAI = document.getElementById("use-ai-toggle").checked;
-    const word = q.word.toLowerCase();
-
-    document.getElementById("user-input").style.display = "none";
-    document.getElementById("submit-btn").style.display = "none";
-    container.style.display = "grid";
-    container.innerHTML = "<div>AI Generating...</div>";
-
-    let distractors = [];
-    if (useAI && !word.includes(" ")) {
-        try {
-            const res = await fetch(`/api/generate?word=${encodeURIComponent(word)}&len=${word.length}`);
-            const data = await res.json();
-            if (data.distractors) distractors = data.distractors.split(",").map(w => w.trim().toLowerCase()).filter(w => w !== word);
-        } catch (e) { console.error("AI failed"); }
-    }
-
-    if (distractors.length < 3) {
-        const allWords = Object.values(fullWordBank).flat().map(i => i.word.toLowerCase());
-        const filtered = allWords.filter(w => w !== word);
-        while (distractors.length < 3) {
-            const pick = filtered[Math.floor(Math.random() * filtered.length)];
-            if (!distractors.includes(pick)) distractors.push(pick);
-        }
-    }
-
-    const options = [word, ...distractors.slice(0, 3)].sort(() => Math.random() - 0.5);
-    container.innerHTML = "";
-    options.forEach(opt => {
-        const btn = document.createElement("button");
-        btn.className = "option-btn";
-        btn.innerText = opt;
-        btn.onclick = () => handleFeedback(opt === word, word);
-        container.appendChild(btn);
-    });
+    const userAnswer = document.getElementById("user-input").value.trim().toLowerCase();
+    const correctAnswer = q.word.toLowerCase();
+    handleFeedback(userAnswer === correctAnswer, q.word);
 }
 
 function handleFeedback(isCorrect, correctWord) {
     const feedback = document.getElementById("feedback");
     feedback.style.display = "block";
     document.getElementById("next-btn").style.display = "block";
-    document.getElementById("options-container").style.display = "none";
     document.getElementById("submit-btn").style.display = "none";
     document.getElementById("user-input").style.display = "none";
 
@@ -128,48 +59,37 @@ function handleFeedback(isCorrect, correctWord) {
         feedback.className = "feedback correct";
         feedback.innerText = "Correct!";
         score++;
-        playSound("correct");
     } else {
         feedback.className = "feedback wrong";
         feedback.innerText = `Incorrect. The answer is: ${correctWord}`;
-        if (!errorList.includes(currentQueue[currentIndex])) errorList.push(currentQueue[currentIndex]);
-        playSound("wrong");
+        errorList.push(currentQueue[currentIndex]);
     }
 }
 
 function nextQuestion() {
     currentIndex++;
-    showQuestion();
+    if (currentIndex < currentQueue.length) showQuestion();
+    else showResult();
+}
+
+function showQuestion() {
+    const q = currentQueue[currentIndex];
+    document.getElementById("status-text").innerText = `Progress: ${currentIndex + 1} / ${currentQueue.length}`;
+    document.getElementById("sentence-text").innerText = q.q;
+    document.getElementById("translation-text").innerText = q.sentenceTranslation;
+    document.getElementById("feedback").style.display = "none";
+    document.getElementById("next-btn").style.display = "none";
+    document.getElementById("submit-btn").style.display = "block";
+    document.getElementById("user-input").style.display = "block";
+    document.getElementById("user-input").value = "";
 }
 
 function showResult() {
     document.getElementById("quiz-area").style.display = "none";
     document.getElementById("result-area").style.display = "block";
     document.getElementById("score-text").innerText = `Final Score: ${score} / ${currentQueue.length}`;
-    
-    const tbody = document.getElementById("mistake-table-body");
-    tbody.innerHTML = errorList.length > 0 ? "" : "<tr><td colspan='2'>Perfect! No mistakes.</td></tr>";
-    errorList.forEach(item => {
-        tbody.innerHTML += `<tr><td>${item.word}</td><td>${item.t || "N/A"}</td></tr>`;
-    });
 }
 
-// 新增此函式以啟用模式選擇
-function selectMainMode(mode) {
-    // 1. 設定文字標籤
-    document.getElementById("selected-mode-label").innerText = (mode === 'vocabulary' ? "Vocabulary Mode" : "Grammar Mode");
-    
-    // 2. 切換畫面顯示
-    document.getElementById("mode-selection").style.display = "none";
-    document.getElementById("setup-options").style.display = "block";
-    
-    // 3. 解鎖音效 (瀏覽器限制)
-    [correctSound, wrongSound].forEach(s => {
-        s.play().then(() => { s.pause(); s.currentTime = 0; }).catch(() => {});
-    });
-}
-
-function backToModeSelection() {
-    document.getElementById("mode-selection").style.display = "block";
-    document.getElementById("setup-options").style.display = "none";
+function exitQuiz() {
+    if (confirm("Quit quiz?")) location.reload();
 }

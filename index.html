@@ -15,28 +15,27 @@
 			class="setup-container"
 			style="text-align: center"
 		>
-			<h2>請選擇練習模式</h2>
+			<h2>Select Practice Mode</h2>
 			<div class="mode-buttons">
 				<button onclick="selectMainMode('vocabulary')" class="btn-main">
-					單字練習
+					Vocabulary
 				</button>
 				<button
 					onclick="selectMainMode('grammar')"
 					class="btn-main btn-grammar"
 				>
-					文法練習
+					Grammar
 				</button>
 			</div>
 		</div>
 
 		<div id="setup-options" class="setup-container" style="display: none">
 			<button onclick="backToModeSelection()" class="btn-back">
-				← 返回
+				← Back
 			</button>
-
 			<div class="setup-row">
-				<strong id="selected-mode-label">單字模式</strong>
-				<span>範圍:</span>
+				<strong id="selected-mode-label">Vocabulary Mode</strong>
+				<span>Range:</span>
 				<select id="start-lesson">
 					<option value="1">L1</option>
 					<option value="2">L2</option>
@@ -47,18 +46,17 @@
 					<option value="2">L2</option>
 				</select>
 			</div>
-
 			<div class="setup-row">
-				<span>題數:</span>
+				<span>Questions:</span>
 				<select id="quiz-amount">
 					<option value="10">10</option>
 					<option value="20">20</option>
 					<option value="all">All</option>
 				</select>
-				<span>模式:</span>
+				<span>Mode:</span>
 				<select id="quiz-mode">
-					<option value="fill-in">填充題</option>
-					<option value="multiple-choice">選擇題</option>
+					<option value="fill-in">Fill-in-the-blank</option>
+					<option value="multiple-choice">Multiple Choice</option>
 				</select>
 				<label class="ai-toggle-label">
 					<input type="checkbox" id="use-ai-toggle" /> Use AI
@@ -71,12 +69,10 @@
 
 		<div class="quiz-container">
 			<div class="status-bar" id="status-text">Ready</div>
-
 			<div id="quiz-area" style="display: none">
 				<button onclick="exitQuiz()" class="btn-exit">✕</button>
 				<p class="sentence" id="sentence-text"></p>
 				<p class="translation" id="translation-text"></p>
-
 				<input
 					type="text"
 					id="user-input"
@@ -88,7 +84,6 @@
 					class="options-grid"
 					style="display: none"
 				></div>
-
 				<button id="submit-btn" onclick="checkAnswer()">Submit</button>
 				<div id="feedback" class="feedback"></div>
 				<button
@@ -99,27 +94,19 @@
 					Next Question
 				</button>
 			</div>
-
 			<div id="result-area" style="display: none">
 				<h3>Quiz Completed</h3>
 				<p id="score-text"></p>
-				<div id="mistake-list-container">
-					<table id="mistake-table">
-						<thead>
-							<tr>
-								<th>Word</th>
-								<th>Meaning</th>
-							</tr>
-						</thead>
-						<tbody id="mistake-table-body"></tbody>
-					</table>
-				</div>
-				<button onclick="startReview()" id="review-btn">
-					Review Mistakes
-				</button>
-				<button onclick="location.reload()" class="btn-secondary">
-					New Quiz
-				</button>
+				<table id="mistake-table">
+					<thead>
+						<tr>
+							<th>Word</th>
+							<th>Meaning</th>
+						</tr>
+					</thead>
+					<tbody id="mistake-table-body"></tbody>
+				</table>
+				<button onclick="location.reload()">New Quiz</button>
 			</div>
 		</div>
 

@@ -1,0 +1,248 @@
+/* --- 基礎設定 --- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 100%;
+    margin: 0;
+    padding: 15px;
+    box-sizing: border-box;
+    background-color: #f4f7f9;
+    color: #333;
+}
+
+/* --- 容器與區塊 --- */
+.setup-container, .quiz-container {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto 20px auto;
+    box-sizing: border-box;
+}
+
+.setup-container {
+    background: #e9ecef;
+}
+
+/* --- 標題與文字 --- */
+h2, h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    text-align: center;
+}
+
+.status-bar {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 10px;
+    text-align: right;
+    font-weight: bold;
+}
+
+.sentence {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+    word-wrap: break-word;
+    line-height: 1.4;
+    color: #2c3e50;
+}
+
+.translation {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    border-left: 4px solid #007bff;
+    padding-left: 12px;
+    background: #f8f9fa;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+/* --- 模式選擇按鈕 --- */
+.mode-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.btn-main {
+    flex: 1;
+    padding: 20px !important;
+    font-size: 1.2rem !important;
+    background-color: #007bff !important;
+}
+
+.btn-grammar {
+    background-color: #6f42c1 !important;
+}
+
+/* --- 設定列樣式 --- */
+.setup-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    background: rgba(255,255,255,0.5);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+#selected-mode-label {
+    color: #007bff;
+    font-size: 1.1rem;
+    margin-right: auto;
+}
+
+select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+    background: white;
+}
+
+/* --- 輸入框與一般按鈕 --- */
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    box-sizing: border-box;
+    outline: none;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    transition: filter 0.2s, transform 0.1s;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+.btn-start {
+    background: #28a745;
+    font-weight: bold;
+}
+
+.btn-back {
+    width: auto;
+    padding: 5px 15px;
+    font-size: 0.85rem;
+    background: #6c757d;
+    margin-bottom: 15px;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    margin-top: 10px;
+}
+
+/* --- 選擇題格線 --- */
+.options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.option-btn {
+    background: #fff;
+    color: #007bff;
+    border: 2px solid #007bff;
+    padding: 12px;
+    font-size: 1rem;
+    word-break: break-all;
+}
+
+.option-btn:hover {
+    background: #e7f1ff;
+}
+
+/* --- 回饋訊息 --- */
+.feedback {
+    margin-top: 15px;
+    padding: 15px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.wrong {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.correct {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+/* --- AI 切換開關 --- */
+.ai-toggle-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #444;
+    user-select: none;
+    background: #fff;
+    padding: 5px 10px;
+    border-radius: 20px;
+}
+
+/* --- 結果表格 --- */
+#mistake-list-container {
+    margin: 20px 0;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+    border-bottom: 2px solid #dee2e6;
+    padding: 10px;
+}
+
+td {
+    border-bottom: 1px solid #eee;
+    padding: 10px;
+    text-align: center;
+    font-size: 1rem;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+/* --- 行動裝置優化 --- */
+@media (max-width: 480px) {
+    body { padding: 10px; }
+    .options-grid { grid-template-columns: 1fr; }
+    .setup-row { flex-direction: column; align-items: stretch; }
+    .btn-main { font-size: 1rem !important; }
+}

@@ -6,133 +6,37 @@
 			name="viewport"
 			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
 		/>
-		<title>Vocabulary Quiz</title>
-		<style>
-			body {
-				font-family: Arial, sans-serif;
-				max-width: 100%;
-				margin: 0;
-				padding: 15px;
-				box-sizing: border-box;
-				background-color: #f4f7f9;
-			}
-			.setup-container {
-				background: #e9ecef;
-				padding: 15px;
-				border-radius: 12px;
-				margin-bottom: 15px;
-			}
-			.setup-row {
-				display: flex;
-				align-items: center;
-				gap: 10px;
-				margin-bottom: 10px;
-				flex-wrap: wrap;
-			}
-			select {
-				padding: 8px;
-				border-radius: 5px;
-				border: 1px solid #ccc;
-				font-size: 1rem;
-			}
-			.status-bar {
-				font-size: 0.9rem;
-				color: #555;
-				margin-bottom: 10px;
-				text-align: right;
-			}
-			.quiz-container {
-				background: white;
-				padding: 20px;
-				border-radius: 12px;
-				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-				width: 100%;
-				box-sizing: border-box;
-			}
-			.sentence {
-				font-size: 1.4rem;
-				margin-bottom: 10px;
-				word-wrap: break-word;
-			}
-			.translation {
-				color: #666;
-				font-size: 1.1rem;
-				margin-bottom: 20px;
-				border-left: 4px solid #007bff;
-				padding-left: 10px;
-			}
-
-			/* Input & Buttons */
-			input[type="text"] {
-				width: 100%;
-				padding: 15px;
-				font-size: 1.2rem;
-				margin-bottom: 15px;
-				border: 2px solid #007bff;
-				border-radius: 8px;
-				box-sizing: border-box;
-			}
-			button {
-				width: 100%;
-				padding: 15px;
-				font-size: 1.2rem;
-				cursor: pointer;
-				background: #007bff;
-				color: white;
-				border: none;
-				border-radius: 8px;
-			}
-
-			/* Multiple Choice Options */
-			.options-grid {
-				display: grid;
-				grid-template-columns: 1fr 1fr;
-				gap: 10px;
-				margin-bottom: 15px;
-			}
-			.option-btn {
-				background: #fff;
-				color: #007bff;
-				border: 2px solid #007bff;
-				padding: 12px;
-				font-size: 1.1rem;
-				transition: 0.2s;
-			}
-			.option-btn:hover {
-				background: #f0f7ff;
-			}
-
-			.feedback {
-				margin-top: 20px;
-				padding: 15px;
-				font-size: 1.1rem;
-				border-radius: 8px;
-				display: none;
-			}
-			.wrong {
-				background: #f8d7da;
-				color: #721c24;
-				border: 1px solid #f5c6cb;
-			}
-			.correct {
-				background: #d4edda;
-				color: #155724;
-				border: 1px solid #c3e6cb;
-			}
-			.ai-toggle-label {
-				display: flex;
-				align-items: center;
-				cursor: pointer;
-				font-size: 0.9rem;
-				color: #444;
-				user-select: none;
-			}
-		</style>
+		<title>Vocabulary & Grammar Quiz</title>
+		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
-		<div class="setup-container">
+		<div
+			id="mode-selection"
+			class="setup-container"
+			style="text-align: center"
+		>
+			<h2>請選擇練習模式</h2>
+			<div class="mode-buttons">
+				<button onclick="selectMainMode('vocabulary')" class="btn-main">
+					單字練習
+				</button>
+				<button
+					onclick="selectMainMode('grammar')"
+					class="btn-main btn-grammar"
+				>
+					文法練習
+				</button>
+			</div>
+		</div>
+
+		<div id="setup-options" class="setup-container" style="display: none">
+			<button onclick="backToModeSelection()" class="btn-back">
+				← 返回
+			</button>
+
 			<div class="setup-row">
-				<span>Range:</span>
+				<strong id="selected-mode-label">單字模式</strong>
+				<span>範圍:</span>
 				<select id="start-lesson">
 					<option value="1">L1</option>
 					<option value="2">L2</option>
@@ -145,44 +49,29 @@
 			</div>
 
 			<div class="setup-row">
-				<span>Mode:</span>
-				<select id="quiz-mode">
-					<option value="fill-in">Fill-in the Blanks</option>
-					<option value="multiple-choice">Multiple Choice</option>
-				</select>
-
-				<label class="ai-toggle-label">
-					<input
-						type="checkbox"
-						id="use-ai-toggle"
-						style="width: auto; margin-right: 5px"
-					/>
-					Use AI
-				</label>
-			</div>
-
-			<div class="setup-row">
-				<span>Questions:</span>
+				<span>題數:</span>
 				<select id="quiz-amount">
 					<option value="10">10</option>
 					<option value="20">20</option>
-					<option value="30">30</option>
 					<option value="all">All</option>
 				</select>
+				<span>模式:</span>
+				<select id="quiz-mode">
+					<option value="fill-in">填充題</option>
+					<option value="multiple-choice">選擇題</option>
+				</select>
+				<label class="ai-toggle-label">
+					<input type="checkbox" id="use-ai-toggle" /> Use AI
+				</label>
 			</div>
-
-			<button
-				onclick="startNewQuiz()"
-				style="padding: 10px; font-size: 1rem; background: #6c757d"
-			>
-				Start New Quiz
+			<button onclick="startNewQuiz()" class="btn-start">
+				Start Quiz
 			</button>
 		</div>
 
 		<div class="quiz-container">
-			<div class="status-bar" id="status-text">
-				Select range and start
-			</div>
+			<div class="status-bar" id="status-text">Ready</div>
+
 			<div id="quiz-area" style="display: none">
 				<p class="sentence" id="sentence-text"></p>
 				<p class="translation" id="translation-text"></p>
@@ -190,10 +79,9 @@
 				<input
 					type="text"
 					id="user-input"
-					placeholder="Type the word..."
+					placeholder="Type..."
 					autocomplete="off"
 				/>
-
 				<div
 					id="options-container"
 					class="options-grid"
@@ -205,7 +93,7 @@
 				<button
 					id="next-btn"
 					onclick="nextQuestion()"
-					style="display: none; background: #28a745; margin-top: 10px"
+					style="display: none"
 				>
 					Next Question
 				</button>
@@ -214,338 +102,28 @@
 			<div id="result-area" style="display: none">
 				<h3>Quiz Completed</h3>
 				<p id="score-text"></p>
-
-				<div id="mistake-list-container" style="margin: 20px 0">
-					<h4>Review Mistakes:</h4>
-					<table
-						id="mistake-table"
-						style="
-							width: 100%;
-							border-collapse: collapse;
-							margin-bottom: 20px;
-						"
-					>
+				<div id="mistake-list-container">
+					<table id="mistake-table">
 						<thead>
-							<tr style="background: #f8f9fa">
-								<th
-									style="border: 1px solid #ddd; padding: 8px"
-								>
-									Word
-								</th>
-								<th
-									style="border: 1px solid #ddd; padding: 8px"
-								>
-									Meaning
-								</th>
+							<tr>
+								<th>Word</th>
+								<th>Meaning</th>
 							</tr>
 						</thead>
 						<tbody id="mistake-table-body"></tbody>
 					</table>
 				</div>
-
 				<button onclick="startReview()" id="review-btn">
 					Review Mistakes
 				</button>
-				<button
-					onclick="location.reload()"
-					style="background: #6c757d; margin-top: 10px"
-				>
+				<button onclick="location.reload()" class="btn-secondary">
 					New Quiz
 				</button>
 			</div>
 		</div>
 
 		<script src="data.js"></script>
-		<script>
-			const correctSound = new Audio("./assets/correct.wav");
-			const wrongSound = new Audio("./assets/wrong.wav");
-
-			let currentQueue = [];
-			let errorList = [];
-			let currentIndex = 0;
-			let score = 0;
-
-			// Enter key support
-			document
-				.getElementById("user-input")
-				.addEventListener("keypress", (e) => {
-					if (e.key === "Enter") {
-						if (
-							document.getElementById("submit-btn").style
-								.display !== "none"
-						)
-							checkAnswer();
-						else if (
-							document.getElementById("next-btn").style
-								.display !== "none"
-						)
-							nextQuestion();
-					}
-				});
-
-			function playSound(type) {
-				const sound = type === "correct" ? correctSound : wrongSound;
-
-				// 關鍵：先重置播放時間，避免上一次沒播完導致這次沒聲音
-				sound.pause();
-				sound.currentTime = 0;
-
-				// 執行播放，並捕捉可能的錯誤（例如用戶尚未與頁面互動）
-				const playPromise = sound.play();
-
-				if (playPromise !== undefined) {
-					playPromise.catch((error) => {
-						console.log(
-							"音效播放被攔截，請點擊頁面任何處以啟用音效:",
-							error,
-						);
-					});
-				}
-			}
-
-			function startNewQuiz() {
-				const start = parseInt(
-					document.getElementById("start-lesson").value,
-				);
-				const end = parseInt(
-					document.getElementById("end-lesson").value,
-				);
-				const amount = document.getElementById("quiz-amount").value; // 獲取選取題數
-
-				if (start > end) {
-					alert("Invalid range!");
-					return;
-				}
-
-				currentQueue = [];
-				for (let i = start; i <= end; i++) {
-					const key = "L" + i;
-					if (fullWordBank[key])
-						currentQueue = currentQueue.concat(fullWordBank[key]);
-				}
-
-				// 1. 先隨機排序
-				currentQueue.sort(() => Math.random() - 0.5);
-
-				// 2. 根據選取的題數進行截取 (如果是 "all" 就不截取)
-				if (amount !== "all") {
-					currentQueue = currentQueue.slice(0, parseInt(amount));
-				}
-
-				currentIndex = 0;
-				score = 0;
-				errorList = [];
-
-				document.getElementById("quiz-area").style.display = "block";
-				document.getElementById("result-area").style.display = "none";
-				showQuestion();
-			}
-
-			async function showQuestion() {
-				if (currentIndex >= currentQueue.length) {
-					showResult();
-					return;
-				}
-				updateStatus();
-				const q = currentQueue[currentIndex];
-				const mode = document.getElementById("quiz-mode").value;
-
-				document.getElementById("sentence-text").innerText = q.q;
-				document.getElementById("translation-text").innerText =
-					q.sentenceTranslation;
-				document.getElementById("feedback").style.display = "none";
-				document.getElementById("next-btn").style.display = "none";
-
-				if (mode === "multiple-choice") {
-					document.getElementById("user-input").style.display =
-						"none";
-					document.getElementById("submit-btn").style.display =
-						"none";
-					document.getElementById("options-container").style.display =
-						"grid";
-					await generateOptions(q);
-				} else {
-					document.getElementById("user-input").style.display =
-						"block";
-					document.getElementById("submit-btn").style.display =
-						"block";
-					document.getElementById("options-container").style.display =
-						"none";
-					document.getElementById("user-input").value = "";
-					document.getElementById("user-input").focus();
-				}
-			}
-
-			async function generateOptions(correctItem) {
-				const container = document.getElementById("options-container");
-				const useAI = document.getElementById("use-ai-toggle").checked;
-				const targetWord = correctItem.word.toLowerCase();
-
-				let distractors = [];
-				let isAiSuccess = false;
-
-				if (useAI) {
-					container.innerHTML =
-						"<div style='grid-column: 1/-1; text-align:center;'>🤖 AI Thinking...</div>";
-					try {
-						// 加入字數限制的指令到後端 (假設您的後端會接收 prompt)
-						const response = await fetch(
-							`/api/generate?word=${encodeURIComponent(targetWord)}&len=${targetWord.length}`,
-						);
-						const data = await response.json();
-
-						if (data.distractors) {
-							// 處理 AI 回傳：轉小寫、去空格、過濾掉與正解相同的字
-							distractors = data.distractors
-								.split(",")
-								.map((w) => w.trim().toLowerCase())
-								.filter((w) => w !== "" && w !== targetWord);
-
-							// 去除重複字
-							distractors = [...new Set(distractors)];
-
-							if (distractors.length >= 3) isAiSuccess = true;
-						}
-					} catch (error) {
-						console.error("AI 獲取失敗:", error);
-					}
-				}
-
-				// 防呆機制：如果 AI 失敗或選項不足 3 個，從題庫補充
-				if (!isAiSuccess) {
-					const allWords = Object.values(fullWordBank).flat();
-					const backupDistractors = allWords
-						.map((item) => item.word.toLowerCase())
-						.filter((w) => w !== targetWord); // 過濾掉正解
-
-					// 隨機抽取直到補滿 3 個不重複的干擾項
-					while (
-						distractors.length < 3 &&
-						backupDistractors.length > 0
-					) {
-						const randomIndex = Math.floor(
-							Math.random() * backupDistractors.length,
-						);
-						const randomWord = backupDistractors.splice(
-							randomIndex,
-							1,
-						)[0];
-						if (!distractors.includes(randomWord)) {
-							distractors.push(randomWord);
-						}
-					}
-				}
-
-				// 最終合併：正解 + 3個干擾項，共 4 個
-				const finalOptions = [
-					targetWord,
-					...distractors.slice(0, 3),
-				].sort(() => Math.random() - 0.5);
-
-				container.innerHTML = "";
-				finalOptions.forEach((opt) => {
-					const btn = document.createElement("button");
-					btn.className = "option-btn";
-					btn.innerText = opt;
-					btn.onclick = () => checkChoice(opt, targetWord);
-					container.appendChild(btn);
-				});
-			}
-
-			function checkChoice(selected, correct) {
-				showFeedback(
-					selected.toLowerCase() === correct.toLowerCase(),
-					correct,
-				);
-			}
-
-			function checkAnswer() {
-				const userAns = document
-					.getElementById("user-input")
-					.value.trim()
-					.toLowerCase();
-				const correct = currentQueue[currentIndex].word.toLowerCase();
-				showFeedback(
-					userAns === correct,
-					currentQueue[currentIndex].word,
-				);
-			}
-
-			function showFeedback(isCorrect, correctWord) {
-				const feedback = document.getElementById("feedback");
-				feedback.style.display = "block";
-				document.getElementById("submit-btn").style.display = "none";
-				document.getElementById("options-container").style.display =
-					"none";
-				document.getElementById("next-btn").style.display = "block";
-
-				if (isCorrect) {
-					feedback.className = "feedback correct";
-					feedback.innerText = "Correct!";
-					score++;
-					playSound("correct"); // 修改這裡
-				} else {
-					feedback.className = "feedback wrong";
-					feedback.innerText = `Incorrect. The answer is: ${correctWord}`;
-					if (!errorList.includes(currentQueue[currentIndex]))
-						errorList.push(currentQueue[currentIndex]);
-					playSound("wrong"); // 修改這裡
-				}
-			}
-
-			function updateStatus() {
-				document.getElementById("status-text").innerText =
-					`Progress: ${currentIndex + 1} / ${currentQueue.length}`;
-			}
-
-			function nextQuestion() {
-				currentIndex++;
-				showQuestion();
-			}
-
-			function showResult() {
-				document.getElementById("quiz-area").style.display = "none";
-				document.getElementById("result-area").style.display = "block";
-				document.getElementById("score-text").innerText =
-					`Final Score: ${score} / ${currentQueue.length}`;
-
-				const tbody = document.getElementById("mistake-table-body");
-				const container = document.getElementById(
-					"mistake-list-container",
-				);
-				const reviewBtn = document.getElementById("review-btn");
-
-				tbody.innerHTML = ""; // 清空舊內容
-
-				if (errorList.length > 0) {
-					container.style.display = "block";
-					reviewBtn.style.display = "inline-block";
-
-					errorList.forEach((item) => {
-						// 這裡顯示 item.word (英文) 和 item.meaning (單字字義)
-						const row = `<tr>
-							<td style="border: 1px solid #ddd; padding: 8px;">${item.word}</td>
-							<td style="border: 1px solid #ddd; padding: 8px;">${item.t || "N/A"}</td>
-						</tr>`;
-						tbody.innerHTML += row;
-					});
-				} else {
-					container.style.display = "none";
-					reviewBtn.style.display = "none";
-					tbody.innerHTML =
-						"<tr><td colspan='2' style='text-align:center;'>Perfect! No mistakes.</td></tr>";
-				}
-			}
-			function startReview() {
-				if (errorList.length === 0) return;
-				currentQueue = [...errorList];
-				errorList = [];
-				currentIndex = 0;
-				score = 0;
-				document.getElementById("quiz-area").style.display = "block";
-				document.getElementById("result-area").style.display = "none";
-				showQuestion();
-			}
-		</script>
+		<script src="api-client.js"></script>
+		<script src="script.js"></script>
 	</body>
 </html>

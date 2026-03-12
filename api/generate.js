@@ -1,32 +1,27 @@
 // api/generate.js
 export default async function handler(req, res) {
-    const { word, len } = req.query; 
+    const { type, word, len, topic, count } = req.query;
     const API_KEY = process.env.GEMINI_API_KEY;
 
-    // 強化版的 Prompt，加入明確的負面約束
-    const prompt = `Target word: "${word}". 
-    Create 3 incorrect English vocabulary distractors for a junior high school student.
-    Rules:
-    1. MUST be exactly ${len} letters long.
-    2. MUST NOT be the word "${word}".
-    3. MUST be different from each other.
-    4. Return ONLY the words separated by commas, no spaces after commas, no explanations.
-    Example output: word1,word2,word3`;
-
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`, {
+        let prompt = "";
+        if (type === 'grammar') {
+            prompt = `請針對「${topic}」出 ${count || 3} 題選擇題。格式必須為 JSON 陣列，每個物件包含 q(題目), options(陣列), answer(正確選項), explanation(解析)。範例: [{"q":"...","options":["A","B","C","D"],"answer":"A","explanation":"..."}]。請不要輸出任何 Markdown 標記，僅輸出純 JSON。`;
+        } else {
+            prompt = `Target word: "${word}". Create 3 incorrect distractors (exactly ${len} letters). Return ONLY comma-separated words.`;
+        }
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.7 } // 增加一點隨機性
-            })
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
 
         const data = await response.json();
-        const aiText = data.candidates[0].content.parts[0].text.replace(/\n/g, "");
-        res.status(200).json({ distractors: aiText });
+        const aiText = data.candidates[0].content.parts[0].text.trim().replace(/```json|```/g, "");
+        
+        res.status(200).json(type === 'grammar' ? JSON.parse(aiText) : { distractors: aiText });
     } catch (error) {
-        res.status(500).json({ error: "Failed to fetch AI" });
+        res.status(500).json({ error: error.message });
     }
 }

@@ -24,19 +24,23 @@ function backToModeSelection() {
 async function startNewQuiz() {
     const start = parseInt(document.getElementById("start-lesson").value);
     const end = parseInt(document.getElementById("end-lesson").value);
-    const modeLabel = document.getElementById("selected-mode-label").innerText;
-    const isGrammar = modeLabel.includes("Grammar");
+    const isGrammar = document.getElementById("selected-mode-label").innerText.includes("Grammar");
+    const useAi = document.getElementById("use-ai-toggle").checked;
 
     currentQueue = [];
-    for (let i = start; i <= end; i++) {
-        const key = "L" + i;
-        // 如果是文法模式讀取 grammarBank，否則讀取 fullWordBank
+    
+    // 如果是文法模式且勾選 AI
+    if (isGrammar && useAi) {
+        const topic = `國中英語 L${start} 到 L${end} 文法重點`;
+        const aiData = await fetchGrammarQuestions(topic, 5);
+        currentQueue = aiData || [];
+    } else {
+        // 使用原有的靜態題庫
         const source = isGrammar ? grammarBank : fullWordBank;
-        if (source && source[key]) {
-            currentQueue = currentQueue.concat(source[key]);
+        for (let i = start; i <= end; i++) {
+            if (source["L" + i]) currentQueue = currentQueue.concat(source["L" + i]);
         }
     }
-    currentQueue.sort(() => Math.random() - 0.5);
     
     currentIndex = 0; score = 0; errorList = [];
     document.getElementById("setup-options").style.display = "none";

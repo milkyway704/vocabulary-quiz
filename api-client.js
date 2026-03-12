@@ -15,3 +15,16 @@ async function fetchAiDistractors(word) {
         return [];
     }
 }
+
+async function fetchGrammarQuestions(topic, count = 5) {
+    try {
+        // 呼叫後端 API，傳入 type=grammar
+        const response = await fetch(`/api/generate?type=grammar&topic=${encodeURIComponent(topic)}&count=${count}`);
+        const data = await response.json();
+        // 假設後端回傳的是 JSON 陣列
+        return data; 
+    } catch (error) {
+        console.error("Fetch Grammar Error:", error);
+        return [];
+    }
+}

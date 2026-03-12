@@ -161,6 +161,16 @@
 				</label>
 			</div>
 
+			<div class="setup-row">
+				<span>Questions:</span>
+				<select id="quiz-amount">
+					<option value="10">10</option>
+					<option value="20">20</option>
+					<option value="30">30</option>
+					<option value="all">All</option>
+				</select>
+			</div>
+
 			<button
 				onclick="startNewQuiz()"
 				style="padding: 10px; font-size: 1rem; background: #6c757d"
@@ -280,6 +290,7 @@
 				const end = parseInt(
 					document.getElementById("end-lesson").value,
 				);
+				const amount = document.getElementById("quiz-amount").value; // 獲取選取題數
 
 				if (start > end) {
 					alert("Invalid range!");
@@ -292,7 +303,15 @@
 					if (fullWordBank[key])
 						currentQueue = currentQueue.concat(fullWordBank[key]);
 				}
+
+				// 1. 先隨機排序
 				currentQueue.sort(() => Math.random() - 0.5);
+
+				// 2. 根據選取的題數進行截取 (如果是 "all" 就不截取)
+				if (amount !== "all") {
+					currentQueue = currentQueue.slice(0, parseInt(amount));
+				}
+
 				currentIndex = 0;
 				score = 0;
 				errorList = [];

@@ -24,18 +24,20 @@ function backToModeSelection() {
 async function startNewQuiz() {
     const start = parseInt(document.getElementById("start-lesson").value);
     const end = parseInt(document.getElementById("end-lesson").value);
-    const amount = document.getElementById("quiz-amount").value;
+    const modeLabel = document.getElementById("selected-mode-label").innerText;
+    const isGrammar = modeLabel.includes("Grammar");
 
     currentQueue = [];
     for (let i = start; i <= end; i++) {
         const key = "L" + i;
-        if (typeof fullWordBank !== 'undefined' && fullWordBank[key]) {
-            currentQueue = currentQueue.concat(fullWordBank[key]);
+        // 如果是文法模式讀取 grammarBank，否則讀取 fullWordBank
+        const source = isGrammar ? grammarBank : fullWordBank;
+        if (source && source[key]) {
+            currentQueue = currentQueue.concat(source[key]);
         }
     }
     currentQueue.sort(() => Math.random() - 0.5);
-    if (amount !== "all") currentQueue = currentQueue.slice(0, parseInt(amount));
-
+    
     currentIndex = 0; score = 0; errorList = [];
     document.getElementById("setup-options").style.display = "none";
     document.getElementById("quiz-area").style.display = "block";
@@ -44,28 +46,32 @@ async function startNewQuiz() {
 
 function showQuestion() {
     const q = currentQueue[currentIndex];
-    const mode = document.getElementById("quiz-mode").value;
-    // 讀取 AI 開關狀態
-    const useAi = document.getElementById("use-ai-toggle").checked;
+    const modeLabel = document.getElementById("selected-mode-label").innerText;
+    const isGrammar = modeLabel.includes("Grammar");
 
     document.getElementById("status-text").innerText = `Progress: ${currentIndex + 1} / ${currentQueue.length}`;
     document.getElementById("sentence-text").innerText = q.q;
-    document.getElementById("translation-text").innerText = q.sentenceTranslation;
-    
-    document.getElementById("feedback").style.display = "none";
-    document.getElementById("next-btn").style.display = "none";
-    document.getElementById("submit-btn").style.display = "none";
-    document.getElementById("user-input").style.display = "none";
-    document.getElementById("options-container").style.display = "none";
+    document.getElementById("translation-text").innerText = isGrammar ? (q.explanation || "") : (q.sentenceTranslation || "");
 
-    if (mode === "multiple-choice") {
-        // 將 useAi 狀態傳入
-        setupMultipleChoice(q, useAi); 
-    } else {
-        document.getElementById("submit-btn").style.display = "block";
-        document.getElementById("user-input").style.display = "block";
-        document.getElementById("user-input").value = "";
+    document.getElementById("user-input").style.display = isGrammar ? "none" : "block";
+    document.getElementById("submit-btn").style.display = isGrammar ? "none" : "block";
+    document.getElementById("options-container").style.display = isGrammar ? "grid" : "none";
+
+    if (isGrammar) {
+        renderGrammarOptions(q);
     }
+}
+
+function renderGrammarOptions(q) {
+    const container = document.getElementById("options-container");
+    container.innerHTML = "";
+    q.options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.innerText = opt;
+        btn.onclick = () => handleFeedback(opt === q.answer, q.answer);
+        container.appendChild(btn);
+    });
 }
 
 async function setupMultipleChoice(q, useAi) {
@@ -133,8 +139,11 @@ function handleFeedback(isCorrect, correctWord) {
 
 function nextQuestion() {
     currentIndex++;
-    if (currentIndex < currentQueue.length) showQuestion();
-    else showResult();
+    if (currentIndex < currentQueue.length) {
+        showQuestion();
+    } else {
+        showResult();
+    }
 }
 
 function showResult() {
@@ -177,3 +186,24 @@ function startReview() {
 function exitQuiz() {
     if (confirm("Quit quiz?")) location.reload();
 }
+
+// 監聽整個網頁的按鍵事件
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+        const userInput = document.getElementById("user-input");
+        const submitBtn = document.getElementById("submit-btn");
+        const nextBtn = document.getElementById("next-btn");
+        const optionsContainer = document.getElementById("options-container");
+
+        // 1. 如果是填充題模式，且輸入框有值
+        if (userInput.style.display !== "none" && userInput.value.trim() !== "") {
+            if (submitBtn.style.display !== "none") {
+                checkAnswer(); // 執行送出檢查
+            }
+        } 
+        // 2. 如果已經顯示反饋，且有「下一題」按鈕
+        else if (nextBtn.style.display !== "none") {
+            nextQuestion(); // 執行下一題
+        }
+    }
+});

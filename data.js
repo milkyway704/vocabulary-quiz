@@ -41,7 +41,7 @@ const fullWordBank = {
         { id: 38, word: "fresh", q: "Would you like some _______ strawberries?", t: "新鮮的", sentenceTranslation: "你想要來一些新鮮的草莓嗎？" },
         { id: 39, word: "means", q: "What does 'clever' mean? It _______ 'smart'.", t: "意指", sentenceTranslation: "它意指「聰明的」。" },
         { id: 40, word: "Earth", q: "There are many beautiful animals on _______.", t: "地球", sentenceTranslation: "地球上有許多美麗的動物。" },
-        { id: 41, word: "turned into", q: "The woman _______ _______ the old coat _______ a new bag.", t: "(使)成為", sentenceTranslation: "這位女士把舊外套改造成了一個新包包。" }
+        { id: 41, word: "turned into", q: "The woman _______ the old coat _______ a new bag.", t: "(使)成為", sentenceTranslation: "這位女士把舊外套改造成了一個新包包。" }
     ],
     "L2": [
         { id: 201, word: "sofa", q: "My pet cat is under the _______.", t: "沙發", sentenceTranslation: "我的寵物貓在沙發下面。" },

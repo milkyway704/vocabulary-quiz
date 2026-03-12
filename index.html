@@ -106,7 +106,18 @@
 					</thead>
 					<tbody id="mistake-table-body"></tbody>
 				</table>
-				<button onclick="location.reload()">New Quiz</button>
+
+				<button
+					onclick="startReview()"
+					id="review-btn"
+					style="display: none"
+				>
+					Review Mistakes
+				</button>
+
+				<button onclick="location.reload()" class="btn-secondary">
+					New Quiz
+				</button>
 			</div>
 		</div>
 

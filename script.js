@@ -117,6 +117,34 @@ function showResult() {
     document.getElementById("quiz-area").style.display = "none";
     document.getElementById("result-area").style.display = "block";
     document.getElementById("score-text").innerText = `Final Score: ${score} / ${currentQueue.length}`;
+    
+    const tbody = document.getElementById("mistake-table-body");
+    tbody.innerHTML = ""; // 清空舊內容
+
+    if (errorList.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='2'>Perfect! No mistakes.</td></tr>";
+        document.getElementById("review-btn").style.display = "none"; // 沒有錯誤時隱藏按鈕
+    } else {
+        errorList.forEach(item => {
+            // 顯示單字與其中文翻譯
+            tbody.innerHTML += `<tr><td>${item.word}</td><td>${item.t || "N/A"}</td></tr>`;
+        });
+        document.getElementById("review-btn").style.display = "block";
+    }
+}
+
+// 重新練習錯誤題目
+function startReview() {
+    if (errorList.length === 0) return;
+    
+    currentQueue = [...errorList]; // 將錯誤題目變成新的測驗隊列
+    errorList = []; // 清空錯誤列表
+    currentIndex = 0;
+    score = 0;
+
+    document.getElementById("result-area").style.display = "none";
+    document.getElementById("quiz-area").style.display = "block";
+    showQuestion();
 }
 
 function exitQuiz() {

@@ -359,6 +359,7 @@
 			async function generateOptions(correctItem) {
 				const container = document.getElementById("options-container");
 				const useAI = document.getElementById("use-ai-toggle").checked;
+				const targetWord = correctItem.word.toLowerCase();
 
 				let distractors = [];
 				let isAiSuccess = false;
@@ -367,39 +368,66 @@
 					container.innerHTML =
 						"<div style='grid-column: 1/-1; text-align:center;'>🤖 AI Thinking...</div>";
 					try {
+						// 加入字數限制的指令到後端 (假設您的後端會接收 prompt)
 						const response = await fetch(
-							`/api/generate?word=${encodeURIComponent(correctItem.word)}`,
+							`/api/generate?word=${encodeURIComponent(targetWord)}&len=${targetWord.length}`,
 						);
 						const data = await response.json();
+
 						if (data.distractors) {
+							// 處理 AI 回傳：轉小寫、去空格、過濾掉與正解相同的字
 							distractors = data.distractors
 								.split(",")
-								.map((w) => w.trim());
-							isAiSuccess = true;
+								.map((w) => w.trim().toLowerCase())
+								.filter((w) => w !== "" && w !== targetWord);
+
+							// 去除重複字
+							distractors = [...new Set(distractors)];
+
+							if (distractors.length >= 3) isAiSuccess = true;
 						}
 					} catch (error) {
 						console.error("AI 獲取失敗:", error);
 					}
 				}
 
+				// 防呆機制：如果 AI 失敗或選項不足 3 個，從題庫補充
 				if (!isAiSuccess) {
 					const allWords = Object.values(fullWordBank).flat();
-					distractors = allWords
-						.filter((item) => item.word !== correctItem.word)
-						.map((item) => item.word)
-						.sort(() => 0.5 - Math.random())
-						.slice(0, 3);
+					const backupDistractors = allWords
+						.map((item) => item.word.toLowerCase())
+						.filter((w) => w !== targetWord); // 過濾掉正解
+
+					// 隨機抽取直到補滿 3 個不重複的干擾項
+					while (
+						distractors.length < 3 &&
+						backupDistractors.length > 0
+					) {
+						const randomIndex = Math.floor(
+							Math.random() * backupDistractors.length,
+						);
+						const randomWord = backupDistractors.splice(
+							randomIndex,
+							1,
+						)[0];
+						if (!distractors.includes(randomWord)) {
+							distractors.push(randomWord);
+						}
+					}
 				}
 
-				const options = [correctItem.word, ...distractors].sort(
-					() => 0.5 - Math.random(),
-				);
+				// 最終合併：正解 + 3個干擾項，共 4 個
+				const finalOptions = [
+					targetWord,
+					...distractors.slice(0, 3),
+				].sort(() => Math.random() - 0.5);
+
 				container.innerHTML = "";
-				options.forEach((opt) => {
+				finalOptions.forEach((opt) => {
 					const btn = document.createElement("button");
 					btn.className = "option-btn";
 					btn.innerText = opt;
-					btn.onclick = () => checkChoice(opt, correctItem.word);
+					btn.onclick = () => checkChoice(opt, targetWord);
 					container.appendChild(btn);
 				});
 			}

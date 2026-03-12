@@ -283,7 +283,42 @@
 					}
 				});
 
+			function playSound(type) {
+				const sound = type === "correct" ? correctSound : wrongSound;
+
+				// 關鍵：先重置播放時間，避免上一次沒播完導致這次沒聲音
+				sound.pause();
+				sound.currentTime = 0;
+
+				// 執行播放，並捕捉可能的錯誤（例如用戶尚未與頁面互動）
+				const playPromise = sound.play();
+
+				if (playPromise !== undefined) {
+					playPromise.catch((error) => {
+						console.log(
+							"音效播放被攔截，請點擊頁面任何處以啟用音效:",
+							error,
+						);
+					});
+				}
+			}
+
 			function startNewQuiz() {
+				correctSound
+					.play()
+					.then(() => {
+						correctSound.pause();
+						correctSound.currentTime = 0;
+					})
+					.catch(() => {});
+				wrongSound
+					.play()
+					.then(() => {
+						wrongSound.pause();
+						wrongSound.currentTime = 0;
+					})
+					.catch(() => {});
+
 				const start = parseInt(
 					document.getElementById("start-lesson").value,
 				);
@@ -463,13 +498,13 @@
 					feedback.className = "feedback correct";
 					feedback.innerText = "Correct!";
 					score++;
-					correctSound.play().catch(() => {});
+					playSound("correct"); // 修改這裡
 				} else {
 					feedback.className = "feedback wrong";
 					feedback.innerText = `Incorrect. The answer is: ${correctWord}`;
 					if (!errorList.includes(currentQueue[currentIndex]))
 						errorList.push(currentQueue[currentIndex]);
-					wrongSound.play().catch(() => {});
+					playSound("wrong"); // 修改這裡
 				}
 			}
 

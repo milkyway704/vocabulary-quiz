@@ -119,15 +119,18 @@ function showResult() {
     document.getElementById("score-text").innerText = `Final Score: ${score} / ${currentQueue.length}`;
     
     const tbody = document.getElementById("mistake-table-body");
-    tbody.innerHTML = ""; // 清空舊內容
+    tbody.innerHTML = ""; 
 
     if (errorList.length === 0) {
-        tbody.innerHTML = "<tr><td colspan='2'>Perfect! No mistakes.</td></tr>";
-        document.getElementById("review-btn").style.display = "none"; // 沒有錯誤時隱藏按鈕
+        tbody.innerHTML = "<tr><td colspan='2' style='padding: 15px;'>Perfect! No mistakes.</td></tr>";
+        document.getElementById("review-btn").style.display = "none";
     } else {
         errorList.forEach(item => {
-            // 顯示單字與其中文翻譯
-            tbody.innerHTML += `<tr><td>${item.word}</td><td>${item.t || "N/A"}</td></tr>`;
+            // 使用模板字串確保表格內容格式一致
+            tbody.innerHTML += `<tr>
+                <td style='padding: 10px;'>${item.word}</td>
+                <td style='padding: 10px;'>${item.t || "N/A"}</td>
+            </tr>`;
         });
         document.getElementById("review-btn").style.display = "block";
     }

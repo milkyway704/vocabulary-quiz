@@ -105,10 +105,13 @@ button {
     border: none;
     border-radius: 8px;
     transition: 0.2s;
+    margin-bottom: 10px; /* 統一按鈕下方間距 */
 }
 
+button:hover { background: #0056b3; }
+
 .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-.option-btn { background: #fff; color: #007bff; border: 2px solid #007bff; padding: 12px; }
+.option-btn { background: #fff; color: #007bff; border: 2px solid #007bff; padding: 12px; margin-bottom: 0; }
 .option-btn:hover { background: #e7f1ff; }
 
 /* --- Feedback --- */
@@ -116,18 +119,26 @@ button {
 .wrong { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 .correct { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
 
-/* --- Table --- */
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+/* --- Result Area & Table --- */
+#result-area {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* 確保結果頁面的內容有固定間隔 */
+}
+
+table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
 th { background: #f8f9fa; }
 
+/* --- Mode Buttons --- */
 .mode-buttons {
     display: flex;
     flex-direction: column;
-    gap: 20px; /* 增加按鈕之間的垂直距離 */
+    gap: 20px; 
     margin-top: 20px;
 }
 .btn-main {
     padding: 15px;
     font-size: 1.2rem;
+    margin-bottom: 0; /* flex gap 會處理間距 */
 }

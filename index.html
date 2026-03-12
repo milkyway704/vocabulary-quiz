@@ -304,21 +304,6 @@
 			}
 
 			function startNewQuiz() {
-				correctSound
-					.play()
-					.then(() => {
-						correctSound.pause();
-						correctSound.currentTime = 0;
-					})
-					.catch(() => {});
-				wrongSound
-					.play()
-					.then(() => {
-						wrongSound.pause();
-						wrongSound.currentTime = 0;
-					})
-					.catch(() => {});
-
 				const start = parseInt(
 					document.getElementById("start-lesson").value,
 				);

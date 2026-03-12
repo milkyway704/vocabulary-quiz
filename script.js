@@ -24,21 +24,27 @@ function backToModeSelection() {
 async function startNewQuiz() {
     const start = parseInt(document.getElementById("start-lesson").value);
     const end = parseInt(document.getElementById("end-lesson").value);
+    const amount = parseInt(document.getElementById("quiz-amount").value); // 確保獲取數量
     const isGrammar = document.getElementById("selected-mode-label").innerText.includes("Grammar");
     const useAi = document.getElementById("use-ai-toggle").checked;
 
     currentQueue = [];
     
-    // 如果是文法模式且勾選 AI
+    // 1. 建立完整題庫池
     if (isGrammar && useAi) {
         const topic = `國中英語 L${start} 到 L${end} 文法重點`;
-        const aiData = await fetchGrammarQuestions(topic, 5);
+        const aiData = await fetchGrammarQuestions(topic, amount); // 傳入需要的數量
         currentQueue = aiData || [];
     } else {
-        // 使用原有的靜態題庫
         const source = isGrammar ? grammarBank : fullWordBank;
         for (let i = start; i <= end; i++) {
             if (source["L" + i]) currentQueue = currentQueue.concat(source["L" + i]);
+        }
+        
+        // 2. 隨機打散並限制題目數量
+        currentQueue.sort(() => Math.random() - 0.5);
+        if (amount > 0 && currentQueue.length > amount) {
+            currentQueue = currentQueue.slice(0, amount);
         }
     }
     
@@ -50,34 +56,29 @@ async function startNewQuiz() {
 
 function showQuestion() {
     const q = currentQueue[currentIndex];
-    // 判斷當前模式：查看標籤文字
-    const isGrammar = document.getElementById("selected-mode-label").innerText.includes("Grammar");
+    // 為了安全起見，直接判斷顯示模式，避免文字比對失敗
+    const isGrammar = document.getElementById("selected-mode-label").innerText === "Grammar Mode";
 
     document.getElementById("status-text").innerText = `Progress: ${currentIndex + 1} / ${currentQueue.length}`;
     document.getElementById("sentence-text").innerText = q.q;
 
-    // --- 【修復關鍵】：恢復您原本的單字翻譯邏輯 ---
-    // 單字模式使用 sentenceTranslation (整句)，文法模式使用 explanation
+    // 單字題顯示完整句翻譯 (t 是縮寫，sentenceTranslation 是長句)
     document.getElementById("translation-text").innerText = isGrammar ? (q.explanation || "") : (q.sentenceTranslation || "");
     
-    // 重置介面狀態
     document.getElementById("feedback").style.display = "none";
     document.getElementById("next-btn").style.display = "none";
 
-    // --- 【修復關鍵】：確保單字模式強制顯示輸入框 ---
+    // 強制 UI 重置：這能確保不會「跑出填充題」或是「跑出選擇題」的混亂情況
     if (isGrammar) {
         document.getElementById("user-input").style.display = "none";
         document.getElementById("submit-btn").style.display = "none";
         document.getElementById("options-container").style.display = "grid";
         renderGrammarOptions(q);
     } else {
-        // 恢復單字模式：強制顯示輸入框，隱藏選擇題區塊
+        document.getElementById("options-container").style.display = "none";
         document.getElementById("user-input").style.display = "block";
         document.getElementById("submit-btn").style.display = "block";
-        document.getElementById("options-container").style.display = "none";
         document.getElementById("user-input").value = "";
-        
-        // 恢復單字輸入框的聚焦 (您要求的功能)
         setTimeout(() => { document.getElementById("user-input").focus(); }, 50);
     }
 }

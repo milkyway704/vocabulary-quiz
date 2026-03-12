@@ -55,29 +55,29 @@ function showQuestion() {
 
     document.getElementById("status-text").innerText = `Progress: ${currentIndex + 1} / ${currentQueue.length}`;
     document.getElementById("sentence-text").innerText = q.q;
+
+    // --- 【修復關鍵】：恢復您原本的單字翻譯邏輯 ---
+    // 單字模式使用 sentenceTranslation (整句)，文法模式使用 explanation
+    document.getElementById("translation-text").innerText = isGrammar ? (q.explanation || "") : (q.sentenceTranslation || "");
     
-    // 調整翻譯區塊：單字模式顯示 t，文法模式顯示解釋(如果有)
-    document.getElementById("translation-text").innerText = isGrammar ? (q.explanation || "") : (q.t || "");
-    
-    // 重置介面元素顯示狀態
+    // 重置介面狀態
     document.getElementById("feedback").style.display = "none";
     document.getElementById("next-btn").style.display = "none";
 
-    // 【關鍵修復】根據模式決定顯示什麼
+    // --- 【修復關鍵】：確保單字模式強制顯示輸入框 ---
     if (isGrammar) {
-        // 文法模式：顯示選項，隱藏輸入框與提交按鈕
         document.getElementById("user-input").style.display = "none";
         document.getElementById("submit-btn").style.display = "none";
         document.getElementById("options-container").style.display = "grid";
         renderGrammarOptions(q);
     } else {
-        // 單字模式：顯示輸入框與提交按鈕，隱藏選項
+        // 恢復單字模式：強制顯示輸入框，隱藏選擇題區塊
         document.getElementById("user-input").style.display = "block";
         document.getElementById("submit-btn").style.display = "block";
         document.getElementById("options-container").style.display = "none";
         document.getElementById("user-input").value = "";
         
-        // 恢復單字模式的自動聚焦
+        // 恢復單字輸入框的聚焦 (您要求的功能)
         setTimeout(() => { document.getElementById("user-input").focus(); }, 50);
     }
 }

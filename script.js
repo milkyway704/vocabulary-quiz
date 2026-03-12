@@ -1,3 +1,7 @@
+if (typeof fetchAiDistractors === 'undefined') {
+    console.error("api-client.js 未成功載入或順序錯誤！");
+}
+
 const correctSound = new Audio("./assets/correct.wav");
 const wrongSound = new Audio("./assets/wrong.wav");
 

@@ -41,6 +41,9 @@ async function startNewQuiz() {
 function showQuestion() {
     const q = currentQueue[currentIndex];
     const mode = document.getElementById("quiz-mode").value;
+    // 讀取 AI 開關狀態
+    const useAi = document.getElementById("use-ai-toggle").checked;
+
     document.getElementById("status-text").innerText = `Progress: ${currentIndex + 1} / ${currentQueue.length}`;
     document.getElementById("sentence-text").innerText = q.q;
     document.getElementById("translation-text").innerText = q.sentenceTranslation;
@@ -52,7 +55,8 @@ function showQuestion() {
     document.getElementById("options-container").style.display = "none";
 
     if (mode === "multiple-choice") {
-        setupMultipleChoice(q);
+        // 將 useAi 狀態傳入
+        setupMultipleChoice(q, useAi); 
     } else {
         document.getElementById("submit-btn").style.display = "block";
         document.getElementById("user-input").style.display = "block";
@@ -60,18 +64,34 @@ function showQuestion() {
     }
 }
 
-function setupMultipleChoice(q) {
+async function setupMultipleChoice(q, useAi) {
     const container = document.getElementById("options-container");
-    container.innerHTML = "";
+    container.innerHTML = "<div>Loading options...</div>"; // 顯示載入中
     container.style.display = "grid";
     
+    let distractors = [];
+    
+    if (useAi) {
+        // 呼叫您寫在 api-client.js 中的函式
+        distractors = await fetchAiDistractors(q.word);
+    }
+
+    // 若 AI 未開啟或取得數量不足，補齊亂數選項
     let options = [q.word.toLowerCase()];
-    // 簡單模擬選項：實際應用建議由 data.js 產生或 AI 獲取
+    const allWords = currentQueue.map(item => item.word.toLowerCase());
+    
+    while(options.length < 4 && distractors.length > 0) {
+        let d = distractors.pop();
+        if(!options.includes(d)) options.push(d);
+    }
+    
     while(options.length < 4) {
-        let rand = currentQueue[Math.floor(Math.random()*currentQueue.length)].word.toLowerCase();
+        let rand = allWords[Math.floor(Math.random() * allWords.length)];
         if(!options.includes(rand)) options.push(rand);
     }
+    
     options.sort(() => Math.random() - 0.5);
+    container.innerHTML = ""; // 清除 Loading 字樣
 
     options.forEach(opt => {
         const btn = document.createElement("button");

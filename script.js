@@ -27,7 +27,9 @@ async function startNewQuiz() {
     const amount = parseInt(document.getElementById("quiz-amount").value); // 確保獲取數量
     const isGrammar = document.getElementById("selected-mode-label").innerText.includes("Grammar");
     const useAi = document.getElementById("use-ai-toggle").checked;
-
+    // 確認選取模式
+    const quizMode = document.getElementById("quiz-mode").value; // 假設您的下拉選單 ID 是 quiz-mode
+    
     currentQueue = [];
     
     // 1. 建立完整題庫池
@@ -56,26 +58,28 @@ async function startNewQuiz() {
 
 function showQuestion() {
     const q = currentQueue[currentIndex];
-    // 為了安全起見，直接判斷顯示模式，避免文字比對失敗
-    const isGrammar = document.getElementById("selected-mode-label").innerText === "Grammar Mode";
+    const quizMode = document.getElementById("quiz-mode").value; // 獲取當前模式
+    const isGrammar = document.getElementById("selected-mode-label").innerText.includes("Grammar");
 
     document.getElementById("status-text").innerText = `Progress: ${currentIndex + 1} / ${currentQueue.length}`;
     document.getElementById("sentence-text").innerText = q.q;
-
-    // 單字題顯示完整句翻譯 (t 是縮寫，sentenceTranslation 是長句)
     document.getElementById("translation-text").innerText = isGrammar ? (q.explanation || "") : (q.sentenceTranslation || "");
-    
+
+    // 隱藏所有互動元素，重新按需顯示
     document.getElementById("feedback").style.display = "none";
     document.getElementById("next-btn").style.display = "none";
+    document.getElementById("user-input").style.display = "none";
+    document.getElementById("options-container").style.display = "none";
+    document.getElementById("submit-btn").style.display = "none";
 
-    // 強制 UI 重置：這能確保不會「跑出填充題」或是「跑出選擇題」的混亂情況
-    if (isGrammar) {
-        document.getElementById("user-input").style.display = "none";
-        document.getElementById("submit-btn").style.display = "none";
+    // --- 這裡進行強制的判斷分流 ---
+    if (isGrammar || quizMode === "multiple-choice") {
+        // 顯示選擇題介面
         document.getElementById("options-container").style.display = "grid";
-        renderGrammarOptions(q);
+        // 這裡判斷是用靜態還是 AI 生成
+        setupMultipleChoice(q, document.getElementById("use-ai-toggle").checked);
     } else {
-        document.getElementById("options-container").style.display = "none";
+        // 顯示填充題介面
         document.getElementById("user-input").style.display = "block";
         document.getElementById("submit-btn").style.display = "block";
         document.getElementById("user-input").value = "";

@@ -120,3 +120,14 @@ button {
 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
 th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
 th { background: #f8f9fa; }
+
+.mode-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* 增加按鈕之間的垂直距離 */
+    margin-top: 20px;
+}
+.btn-main {
+    padding: 15px;
+    font-size: 1.2rem;
+}

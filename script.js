@@ -153,3 +153,23 @@ function showResult() {
         tbody.innerHTML += `<tr><td>${item.word}</td><td>${item.t || "N/A"}</td></tr>`;
     });
 }
+
+// 新增此函式以啟用模式選擇
+function selectMainMode(mode) {
+    // 1. 設定文字標籤
+    document.getElementById("selected-mode-label").innerText = (mode === 'vocabulary' ? "Vocabulary Mode" : "Grammar Mode");
+    
+    // 2. 切換畫面顯示
+    document.getElementById("mode-selection").style.display = "none";
+    document.getElementById("setup-options").style.display = "block";
+    
+    // 3. 解鎖音效 (瀏覽器限制)
+    [correctSound, wrongSound].forEach(s => {
+        s.play().then(() => { s.pause(); s.currentTime = 0; }).catch(() => {});
+    });
+}
+
+function backToModeSelection() {
+    document.getElementById("mode-selection").style.display = "block";
+    document.getElementById("setup-options").style.display = "none";
+}

@@ -76,34 +76,58 @@ async function startNewQuiz() {
 }
 
 // --- 顯示題目 (嚴格分流) ---
-function showQuestion() {
-    const q = currentQueue[currentIndex];
-    if (!q) return; // 防錯機制
-
-    const quizMode = document.getElementById("quiz-mode").value;
+async function startNewQuiz() {
+    const start = parseInt(document.getElementById("start-lesson").value);
+    const end = parseInt(document.getElementById("end-lesson").value);
+    const amount = parseInt(document.getElementById("quiz-amount").value);
+    const useAi = document.getElementById("use-ai").checked;
     const isGrammar = document.getElementById("selected-mode-label").innerText.includes("Grammar");
+    const statusText = document.getElementById("status-text");
 
-    document.getElementById("status-text").innerText = `Progress: ${currentIndex + 1} / ${currentQueue.length}`;
-    document.getElementById("sentence-text").innerText = q.q;
-    document.getElementById("translation-text").innerText = isGrammar ? (q.explanation || "") : (q.sentenceTranslation || "");
-
-    document.getElementById("feedback").style.display = "none";
-    document.getElementById("next-btn").style.display = "none";
-
-    // 邏輯：文法模式 OR 選擇題模式 = 顯示選項
-    if (isGrammar || quizMode === "multiple-choice") {
-        document.getElementById("user-input").style.display = "none";
-        document.getElementById("submit-btn").style.display = "none";
-        document.getElementById("options-container").style.display = "grid";
-        
-        isGrammar ? renderGrammarOptions(q) : setupMultipleChoice(q, q.preloadedDistractors || []);
+    currentQueue = [];
+    errorList = [];
+    
+    if (isGrammar) {
+        // --- 文法模式邏輯 ---
+        if (useAi) {
+            statusText.innerText = "AI Generating Grammar Questions...";
+            const topic = `國中英語 L${start} 到 L${end} 文法重點`;
+            currentQueue = await fetchGrammarQuestions(topic, amount);
+        } else {
+            // 從 grammar_data.js 讀取靜態題目
+            for (let i = start; i <= end; i++) {
+                const lessonData = grammarBank[`L${i}`] || [];
+                currentQueue.push(...lessonData);
+            }
+            currentQueue = currentQueue.sort(() => 0.5 - Math.random()).slice(0, amount);
+        }
     } else {
-        // 只有單字模式下的填充題才顯示輸入框
-        document.getElementById("options-container").style.display = "none";
-        document.getElementById("user-input").style.display = "block";
-        document.getElementById("submit-btn").style.display = "block";
-        document.getElementById("user-input").value = "";
-        setTimeout(() => { document.getElementById("user-input").focus(); }, 50);
+        // --- 單字模式邏輯 ---
+        let allWords = [];
+        for (let i = start; i <= end; i++) {
+            allWords.push(...(fullWordBank[`L${i}`] || []));
+        }
+        currentQueue = allWords.sort(() => 0.5 - Math.random()).slice(0, amount);
+
+        if (useAi) {
+            statusText.innerText = "AI Generating Distractors...";
+            // 這裡就是我說的預載邏輯
+            const aiPromises = currentQueue.map(q => fetchAiDistractors(q.word));
+            const results = await Promise.all(aiPromises);
+            currentQueue.forEach((q, idx) => {
+                q.preloadedDistractors = results[idx];
+            });
+        }
+    }
+
+    if (currentQueue.length > 0) {
+        document.getElementById("setup-options").style.display = "none";
+        document.getElementById("quiz-area").style.display = "block";
+        currentIndex = 0;
+        score = 0;
+        showQuestion();
+    } else {
+        alert("No questions found for the selected range.");
     }
 }
 

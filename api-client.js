@@ -18,13 +18,19 @@ async function fetchAiDistractors(word) {
 
 async function fetchGrammarQuestions(topic, count = 5) {
     try {
-        // 呼叫後端 API，傳入 type=grammar
-        const response = await fetch(`/api/generate?type=grammar&topic=${encodeURIComponent(topic)}&count=${count}`);
+        // 使用您定義的參數：type=grammar (對應後端 req.query.mode 或 req.query.type)
+        const url = `/api/generate?type=grammar&topic=${encodeURIComponent(topic)}&count=${count}`;
+        const response = await fetch(url);
+        
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
         const data = await response.json();
-        // 假設後端回傳的是 JSON 陣列
-        return data; 
+        
+        // 確保回傳結構正確。如果後端回傳 { questions: [...] }，則 return data.questions
+        // 如果後端回傳直接就是陣列，則 return data
+        return Array.isArray(data.questions) ? data.questions : (Array.isArray(data) ? data : []);
     } catch (error) {
         console.error("Fetch Grammar Error:", error);
-        return [];
+        return []; // 發生錯誤時回傳空陣列，防止程式崩潰
     }
 }

@@ -151,21 +151,29 @@ function checkAnswer() {
 
 function handleFeedback(isCorrect, correctWord) {
     const feedback = document.getElementById("feedback");
-    feedback.style.display = "block";
-    document.getElementById("next-btn").style.display = "block";
-    document.getElementById("submit-btn").style.display = "none";
-    document.getElementById("user-input").style.display = "none";
-    document.getElementById("options-container").style.display = "none";
+    const q = currentQueue[currentIndex];
+    const isGrammar = document.getElementById("selected-mode-label").innerText.includes("Grammar");
 
+    feedback.style.display = "block";
+    
     if (isCorrect) {
         feedback.className = "feedback correct";
         feedback.innerText = "Correct!";
         score++;
     } else {
         feedback.className = "feedback wrong";
-        feedback.innerText = `Incorrect. The answer is: ${correctWord}`;
-        errorList.push(currentQueue[currentIndex]);
+        // 只有答錯時顯示解析，且僅在文法模式下顯示
+        let msg = `Incorrect. The answer is: ${correctWord}`;
+        if (isGrammar && q.explanation) {
+            msg += `<br><small style="color: #666;">解析：${q.explanation}</small>`;
+        }
+        feedback.innerHTML = msg;
+        errorList.push(q);
     }
+    
+    document.getElementById("next-btn").style.display = "block";
+    document.getElementById("submit-btn").style.display = "none";
+    document.getElementById("options-container").style.display = "none";
 }
 
 function nextQuestion() {

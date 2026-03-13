@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     let finalPrompt = "";
     if (type === 'grammar') {
         finalPrompt = `
-            請作為一名國中英語教師，根據以下要求生成 ${count} 題文法選擇題：
+            請作為一名台灣國中英語教師，根據以下要求生成 ${count} 題文法選擇題：
             主題範圍：${topic}
             要求：
             1. 參考國中英語文法講義風格，題目需包含比較級、最高級、不定代名詞(one/ones/it/them)等用法。

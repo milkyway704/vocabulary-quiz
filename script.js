@@ -1,21 +1,27 @@
-// --- 初始化 ---
+// --- 初始化與變數 ---
 if (typeof fetchAiDistractors === 'undefined') {
     console.error("api-client.js 未成功載入或順序錯誤！");
 }
-
-const correctSound = new Audio("./assets/correct.wav");
-const wrongSound = new Audio("./assets/wrong.wav");
 
 let currentQueue = [];
 let errorList = [];
 let currentIndex = 0;
 let score = 0;
 
-// --- 模式選擇 (保留原功能) ---
+// --- 模式選擇 ---
 function selectMainMode(mode) {
     document.getElementById("selected-mode-label").innerText = (mode === 'vocabulary' ? "Vocabulary Mode" : "Grammar Mode");
     document.getElementById("mode-selection").style.display = "none";
     document.getElementById("setup-options").style.display = "block";
+    
+    // 修正：文法模式時強制隱藏填充題選項
+    const quizModeSelect = document.getElementById("quiz-mode");
+    if (mode === 'grammar') {
+        quizModeSelect.value = "multiple-choice";
+        quizModeSelect.disabled = true; // 禁止切換回填充題
+    } else {
+        quizModeSelect.disabled = false;
+    }
 }
 
 function backToModeSelection() {
@@ -23,19 +29,21 @@ function backToModeSelection() {
     document.getElementById("setup-options").style.display = "none";
 }
 
-// --- 測驗開始 (已修復報錯與預載) ---
+// --- 測驗開始 (核心修正) ---
 async function startNewQuiz() {
     const start = parseInt(document.getElementById("start-lesson").value);
     const end = parseInt(document.getElementById("end-lesson").value);
     const amount = parseInt(document.getElementById("quiz-amount").value);
     const isGrammar = document.getElementById("selected-mode-label").innerText.includes("Grammar");
     const useAi = document.getElementById("use-ai-toggle").checked;
-
-    currentQueue = [];
     
-    // 1. 建立題庫池
+    currentQueue = [];
+    document.getElementById("setup-options").style.display = "none";
+    document.getElementById("quiz-area").style.display = "block";
+    document.getElementById("sentence-text").innerText = "Loading questions...";
+
+    // 1. 蒐集/獲取題目
     if (isGrammar && useAi) {
-        document.getElementById("sentence-text").innerText = "AI generating grammar questions...";
         const topic = `國中英語 L${start} 到 L${end} 文法重點`;
         const aiData = await fetchGrammarQuestions(topic, amount);
         currentQueue = aiData || [];
@@ -47,31 +55,31 @@ async function startNewQuiz() {
         currentQueue.sort(() => Math.random() - 0.5);
         if (amount > 0 && currentQueue.length > amount) currentQueue = currentQueue.slice(0, amount);
 
-        // 2. 預載 Vocabulary AI 干擾項
-        if (!isGrammar && useAi) {
-            document.getElementById("sentence-text").innerText = "Loading AI distractor content...";
+        // 預載 AI 干擾項
+        if (!isGrammar && useAi && currentQueue.length > 0) {
+            document.getElementById("sentence-text").innerText = "Loading AI content...";
             const aiPromises = currentQueue.map(q => fetchAiDistractors(q.word));
             const allDistractors = await Promise.all(aiPromises);
             currentQueue.forEach((q, index) => { q.preloadedDistractors = allDistractors[index]; });
         }
     }
     
-    // 關鍵防錯：確保 currentQueue 有資料才繼續
-    if (currentQueue.length === 0) {
-        alert("沒有找到題目，請檢查設定或重新嘗試。");
-        backToModeSelection();
+    // 防錯檢查
+    if (!currentQueue || currentQueue.length === 0) {
+        alert("無題目資料，請檢查選單設定。");
+        location.reload();
         return;
     }
     
     currentIndex = 0; score = 0; errorList = [];
-    document.getElementById("setup-options").style.display = "none";
-    document.getElementById("quiz-area").style.display = "block";
     showQuestion();
 }
 
-// --- 顯示題目 (嚴格保留原邏輯與 Review 功能) ---
+// --- 顯示題目 (嚴格分流) ---
 function showQuestion() {
     const q = currentQueue[currentIndex];
+    if (!q) return; // 防錯機制
+
     const quizMode = document.getElementById("quiz-mode").value;
     const isGrammar = document.getElementById("selected-mode-label").innerText.includes("Grammar");
 
@@ -82,7 +90,7 @@ function showQuestion() {
     document.getElementById("feedback").style.display = "none";
     document.getElementById("next-btn").style.display = "none";
 
-    // 介面分流
+    // 邏輯：文法模式 OR 選擇題模式 = 顯示選項
     if (isGrammar || quizMode === "multiple-choice") {
         document.getElementById("user-input").style.display = "none";
         document.getElementById("submit-btn").style.display = "none";
@@ -90,6 +98,7 @@ function showQuestion() {
         
         isGrammar ? renderGrammarOptions(q) : setupMultipleChoice(q, q.preloadedDistractors || []);
     } else {
+        // 只有單字模式下的填充題才顯示輸入框
         document.getElementById("options-container").style.display = "none";
         document.getElementById("user-input").style.display = "block";
         document.getElementById("submit-btn").style.display = "block";
@@ -98,11 +107,11 @@ function showQuestion() {
     }
 }
 
-// --- Render 邏輯 ---
+// --- 選項渲染 (文法專用) ---
 function renderGrammarOptions(q) {
     const container = document.getElementById("options-container");
     container.innerHTML = "";
-    if (!q.options) return; // 防錯
+    if (!q.options) return;
     q.options.forEach(opt => {
         const btn = document.createElement("button");
         btn.className = "option-btn";
@@ -112,6 +121,7 @@ function renderGrammarOptions(q) {
     });
 }
 
+// --- 選項渲染 (單字選擇題專用) ---
 function setupMultipleChoice(q, distractors) {
     const container = document.getElementById("options-container");
     container.innerHTML = "";
@@ -133,7 +143,7 @@ function setupMultipleChoice(q, distractors) {
     });
 }
 
-// --- 檢查答案與反饋 (保留您的完整功能) ---
+// --- 原有功能區 (反饋/錯誤複習/監聽) ---
 function checkAnswer() {
     const q = currentQueue[currentIndex];
     handleFeedback(document.getElementById("user-input").value.trim().toLowerCase() === q.word.toLowerCase(), q.word);
@@ -164,7 +174,6 @@ function nextQuestion() {
     else showResult();
 }
 
-// --- 錯誤複習功能 (完整保留) ---
 function showResult() {
     document.getElementById("quiz-area").style.display = "none";
     document.getElementById("result-area").style.display = "block";
@@ -173,10 +182,12 @@ function showResult() {
     tbody.innerHTML = ""; 
     if (errorList.length === 0) {
         tbody.innerHTML = "<tr><td colspan='2' style='padding: 15px;'>Perfect! No mistakes.</td></tr>";
+        document.getElementById("review-btn").style.display = "none";
     } else {
         errorList.forEach(item => {
             tbody.innerHTML += `<tr><td style='padding: 10px;'>${item.word}</td><td style='padding: 10px;'>${item.t || "N/A"}</td></tr>`;
         });
+        document.getElementById("review-btn").style.display = "block";
     }
 }
 

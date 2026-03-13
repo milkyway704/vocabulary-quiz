@@ -1,5 +1,8 @@
 export default async function handler(req, res) {
+    console.log("Request Query:", req.query);
     const API_KEY = process.env.GEMINI_API_KEY;
+    console.log("API Key Exists:", !!API_KEY);
+    
     const { word, len, topic, amount, mode } = req.query; // 接收模式參數
 
     if (!API_KEY) return res.status(500).json({ error: "API Key missing" });

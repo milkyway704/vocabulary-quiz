@@ -6,7 +6,24 @@ export default async function handler(req, res) {
 
     let finalPrompt = "";
     if (type === 'grammar') {
-        finalPrompt = `Create ${count} multiple choice grammar questions about ${topic}. Format as a JSON array of objects: [{"q": "...", "options": ["...", "...", "...", "..."], "answer": "...", "explanation": "..."}]. Return ONLY the JSON.`;
+        finalPrompt = `
+            請作為一名國中英語教師，根據以下要求生成 ${count} 題文法選擇題：
+            主題範圍：${topic}
+            要求：
+            1. 參考國中英語文法講義風格，題目需包含比較級、最高級、不定代名詞(one/ones/it/them)等用法。
+            2. 每題包含四個選項(A, B, C, D)，且必須只有一個正確答案。
+            3. 必須提供詳細的「中文解析」。
+            4. 回傳格式為嚴格的 JSON 陣列，欄位如下：
+            [
+            {
+                "q": "題目內容",
+                "options": ["A選項", "B選項", "C選項", "D選項"],
+                "answer": "正確答案 (與選項內容完全一致)",
+                "explanation": "中文解析說明"
+            }
+            ]
+            請僅回傳 JSON，不要包含任何 Markdown 標記或文字說明。
+            `;
     } else {
         finalPrompt = `Target word: "${word}". Create 3 incorrect English vocabulary distractors (${len} letters). Return ONLY comma-separated words.`;
     }

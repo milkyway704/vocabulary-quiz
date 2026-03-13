@@ -35,31 +35,40 @@
 			</button>
 			<div class="setup-row">
 				<strong id="selected-mode-label">Vocabulary Mode</strong>
+				<br /><br />
 				<span>Range:</span>
 				<select id="start-lesson">
 					<option value="1">L1</option>
 					<option value="2">L2</option>
+					<option value="3">L3</option>
+					<option value="4">L4</option>
+					<option value="5">L5</option>
 				</select>
 				<span>to</span>
 				<select id="end-lesson">
 					<option value="1">L1</option>
 					<option value="2">L2</option>
+					<option value="3">L3</option>
+					<option value="4">L4</option>
+					<option value="5">L5</option>
 				</select>
 			</div>
 			<div class="setup-row">
 				<span>Questions:</span>
 				<select id="quiz-amount">
+					<option value="5">5</option>
 					<option value="10">10</option>
 					<option value="20">20</option>
-					<option value="all">All</option>
 				</select>
+
 				<span>Mode:</span>
 				<select id="quiz-mode">
-					<option value="fill-in">Fill-in-the-blank</option>
+					<option value="fill-in">Fill-in</option>
 					<option value="multiple-choice">Multiple Choice</option>
 				</select>
-				<label class="ai-toggle-label">
-					<input type="checkbox" id="use-ai-toggle" /> AI
+
+				<label class="ai-toggle-label" style="margin-left: 10px">
+					<input type="checkbox" id="use-ai" checked /> AI
 				</label>
 			</div>
 			<button onclick="startNewQuiz()" class="btn-start">

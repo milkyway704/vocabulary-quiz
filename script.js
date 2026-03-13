@@ -1,4 +1,11 @@
-// --- 全域變數 ---
+// --- 初始化與變數 ---
+if (typeof fetchAiDistractors === 'undefined') {
+    console.error("api-client.js 未成功載入或順序錯誤！");
+}
+
+const correctSound = new Audio("./assets/correct.wav");
+const wrongSound = new Audio("./assets/wrong.wav");
+
 let currentQueue = [];
 let errorList = [];
 let currentIndex = 0;
@@ -16,44 +23,49 @@ function backToModeSelection() {
     document.getElementById("setup-options").style.display = "none";
 }
 
-// --- 測驗流程核心 ---
+// --- 測驗開始 (已加入 AI 預載邏輯) ---
 async function startNewQuiz() {
     const start = parseInt(document.getElementById("start-lesson").value);
     const end = parseInt(document.getElementById("end-lesson").value);
     const amount = parseInt(document.getElementById("quiz-amount").value);
+    const isGrammar = document.getElementById("selected-mode-label").innerText.includes("Grammar");
     const useAi = document.getElementById("use-ai-toggle").checked;
-    const isGrammar = document.getElementById("selected-mode-label").innerText === "Grammar Mode";
+    
+    currentQueue = [];
+    
+    // 1. 蒐集題目
+    if (isGrammar && useAi) {
+        const topic = `國中英語 L${start} 到 L${end} 文法重點`;
+        const aiData = await fetchGrammarQuestions(topic, amount);
+        currentQueue = aiData || [];
+    } else {
+        const source = isGrammar ? grammarBank : fullWordBank;
+        for (let i = start; i <= end; i++) {
+            if (source["L" + i]) currentQueue = currentQueue.concat(source["L" + i]);
+        }
+        currentQueue.sort(() => Math.random() - 0.5);
+        if (amount > 0 && currentQueue.length > amount) currentQueue = currentQueue.slice(0, amount);
 
+        // 2. 預先載入 AI 干擾項 (不更動原本功能，僅在 startNewQuiz 時執行)
+        if (!isGrammar && useAi) {
+            document.getElementById("sentence-text").innerText = "Loading AI content...";
+            const aiPromises = currentQueue.map(q => fetchAiDistractors(q.word));
+            const allDistractors = await Promise.all(aiPromises);
+            currentQueue.forEach((q, index) => { q.preloadedDistractors = allDistractors[index]; });
+        }
+    }
+    
+    currentIndex = 0; score = 0; errorList = [];
     document.getElementById("setup-options").style.display = "none";
     document.getElementById("quiz-area").style.display = "block";
-    document.getElementById("sentence-text").innerText = "Loading...";
-
-    currentQueue = [];
-    const source = isGrammar ? grammarBank : fullWordBank;
-
-    for (let i = start; i <= end; i++) {
-        if (source["L" + i]) currentQueue = currentQueue.concat(source["L" + i]);
-    }
-
-    currentQueue.sort(() => Math.random() - 0.5);
-    if (amount > 0 && currentQueue.length > amount) currentQueue = currentQueue.slice(0, amount);
-
-    // 預先載入 AI 干擾項 (Vocabulary 模式下)
-    if (!isGrammar && useAi) {
-        const aiPromises = currentQueue.map(q => fetchAiDistractors(q.word));
-        const allDistractors = await Promise.all(aiPromises);
-        currentQueue.forEach((q, index) => q.preloadedDistractors = allDistractors[index]);
-    }
-
-    currentIndex = 0; score = 0; errorList = [];
     showQuestion();
 }
 
-// --- 顯示題目 (嚴格分流) ---
+// --- 顯示題目 (嚴格遵守您的原版邏輯) ---
 function showQuestion() {
     const q = currentQueue[currentIndex];
-    const isGrammar = document.getElementById("selected-mode-label").innerText === "Grammar Mode";
-    const quizMode = document.getElementById("quiz-mode").value; // 'multiple-choice' 或 'fill-in-the-blank'
+    const quizMode = document.getElementById("quiz-mode").value;
+    const isGrammar = document.getElementById("selected-mode-label").innerText.includes("Grammar");
 
     document.getElementById("status-text").innerText = `Progress: ${currentIndex + 1} / ${currentQueue.length}`;
     document.getElementById("sentence-text").innerText = q.q;
@@ -62,25 +74,27 @@ function showQuestion() {
     document.getElementById("feedback").style.display = "none";
     document.getElementById("next-btn").style.display = "none";
 
-    // 判定是否顯示選項 (文法題 或 選擇題模式)
-    const showOptions = isGrammar || quizMode === "multiple-choice";
-
-    if (showOptions) {
+    if (isGrammar || quizMode === "multiple-choice") {
         document.getElementById("user-input").style.display = "none";
         document.getElementById("submit-btn").style.display = "none";
         document.getElementById("options-container").style.display = "grid";
         
-        isGrammar ? renderGrammarOptions(q) : setupMultipleChoice(q, q.preloadedDistractors || []);
+        if (isGrammar) {
+            renderGrammarOptions(q);
+        } else {
+            // 使用預載的資料
+            setupMultipleChoice(q, q.preloadedDistractors || []);
+        }
     } else {
-        document.getElementById("options-container").style.display = "none";
         document.getElementById("user-input").style.display = "block";
         document.getElementById("submit-btn").style.display = "block";
+        document.getElementById("options-container").style.display = "none";
         document.getElementById("user-input").value = "";
-        setTimeout(() => document.getElementById("user-input").focus(), 50);
+        setTimeout(() => { document.getElementById("user-input").focus(); }, 50);
     }
 }
 
-// --- 選項渲染 ---
+// --- 選擇題渲染邏輯 ---
 function renderGrammarOptions(q) {
     const container = document.getElementById("options-container");
     container.innerHTML = "";
@@ -99,7 +113,6 @@ function setupMultipleChoice(q, distractors) {
     let options = [q.word.toLowerCase()];
     distractors.forEach(d => { if(!options.includes(d)) options.push(d); });
     
-    // 補齊亂數
     const allWords = currentQueue.map(item => item.word.toLowerCase());
     while(options.length < 4) {
         let rand = allWords[Math.floor(Math.random() * allWords.length)];
@@ -115,10 +128,11 @@ function setupMultipleChoice(q, distractors) {
     });
 }
 
-// --- 互動與結果 ---
+// --- 檢查答案與反饋 (保留您的完整功能) ---
 function checkAnswer() {
     const q = currentQueue[currentIndex];
-    handleFeedback(document.getElementById("user-input").value.trim().toLowerCase() === q.word.toLowerCase(), q.word);
+    const userAnswer = document.getElementById("user-input").value.trim().toLowerCase();
+    handleFeedback(userAnswer === q.word.toLowerCase(), q.word);
 }
 
 function handleFeedback(isCorrect, correctWord) {
@@ -146,22 +160,43 @@ function nextQuestion() {
     else showResult();
 }
 
+// --- 錯誤複習功能 (完整保留) ---
 function showResult() {
     document.getElementById("quiz-area").style.display = "none";
     document.getElementById("result-area").style.display = "block";
     document.getElementById("score-text").innerText = `Final Score: ${score} / ${currentQueue.length}`;
+    
     const tbody = document.getElementById("mistake-table-body");
-    tbody.innerHTML = errorList.length === 0 ? "<tr><td colspan='2'>Perfect!</td></tr>" : "";
-    errorList.forEach(item => tbody.innerHTML += `<tr><td>${item.word}</td><td>${item.t || "N/A"}</td></tr>`);
+    tbody.innerHTML = ""; 
+    if (errorList.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='2' style='padding: 15px;'>Perfect! No mistakes.</td></tr>";
+        document.getElementById("review-btn").style.display = "none";
+    } else {
+        errorList.forEach(item => {
+            tbody.innerHTML += `<tr><td style='padding: 10px;'>${item.word}</td><td style='padding: 10px;'>${item.t || "N/A"}</td></tr>`;
+        });
+        document.getElementById("review-btn").style.display = "block";
+    }
 }
 
-function exitQuiz() { location.reload(); }
+function startReview() {
+    if (errorList.length === 0) return;
+    currentQueue = [...errorList];
+    errorList = [];
+    currentIndex = 0; score = 0;
+    document.getElementById("result-area").style.display = "none";
+    document.getElementById("quiz-area").style.display = "block";
+    showQuestion();
+}
 
+function exitQuiz() { if (confirm("Quit quiz?")) location.reload(); }
+
+// --- 鍵盤監聽 (保留您的完整功能) ---
 document.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
-        const input = document.getElementById("user-input");
-        const next = document.getElementById("next-btn");
-        if (input.style.display !== "none" && input.value.trim() !== "") checkAnswer();
-        else if (next.style.display !== "none") nextQuestion();
+        const userInput = document.getElementById("user-input");
+        const nextBtn = document.getElementById("next-btn");
+        if (userInput.style.display !== "none" && userInput.value.trim() !== "") checkAnswer();
+        else if (nextBtn.style.display !== "none") nextQuestion();
     }
 });

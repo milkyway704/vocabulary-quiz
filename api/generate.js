@@ -6,12 +6,17 @@ export default async function handler(req, res) {
 
     let finalPrompt = "";
     if (type === 'grammar') {
-        finalPrompt = `請作為台灣國中英語教師，生成 ${count || 5} 題文法選擇題。
-        主題：${topic}。
+        // --- 核心修正：讓 AI 專注於你傳入的 topic ---
+        finalPrompt = `你現在是一位專業的台灣國中英語老師。請根據以下指定的文法要點生成 ${count || 5} 題選擇題。
+        
+        【文法要點】：${topic}
+        
         要求：
-        1. 包含比較級、最高級、不定代名詞(one/ones/it/them)等。
-        2. 格式：[{"q": "題目", "options": ["A", "B", "C", "D"], "answer": "正確答案", "explanation": "中文解析"}]
-        3. 請直接回傳 JSON 陣列，不要包含任何 Markdown 標籤或文字說明。`;
+        1. 題目與選項必須完全符合上述文法範圍，程度需適合國中生。
+        2. 題目必須包含：q(題目), options(4個選項陣列), answer(正確答案), explanation(深入淺出的中文解析)。
+        3. 格式規範：回傳一個純 JSON 陣列，嚴禁包含 Markdown 標記 (如 \`\`\`json) 或任何前言後語。
+        4. 確保正確答案位於 options 陣列中，且與 answer 欄位完全一致。`;
+        
     } else {
         finalPrompt = `Target word: "${word}". Create 3 incorrect English vocabulary distractors (${len} letters). Return ONLY comma-separated words without any explanation or markdown. Example: word1,word2,word3`;
     }

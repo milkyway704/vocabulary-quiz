@@ -1,3 +1,14 @@
+// grammar_data.js
+
+// 1. 自定義 AI 出題的文法重點 (提示詞來源)
+const grammarHints = {
+    "L1": "形容詞比較級（如：-er, more..., than...）、形容詞原級比較（as...as）",
+    "L2": "形容詞最高級（如：the -est, the most...）、不定代名詞 one / ones 的用法",
+    "L3": "過去進行式（was/were + V-ing）、when/while 引導的時間副詞子句",
+    "L4": "受與動詞（give/send/buy... sth to/for sb）、反身代名詞（myself, himself...）"
+};
+
+// 2. 原有的靜態題目庫 (當 AI 關閉時使用)
 const grammarBank = {
     "L1": [
         {
@@ -19,12 +30,6 @@ const grammarBank = {
             options: ["cold", "colder", "coldest", "more cold"],
             answer: "coldest",
             explanation: "最高級前需加 the，且需使用 -est。"
-        },
-        {
-            q: "What is the _____ useful machine in the world?",
-            options: ["more", "most", "much", "many"],
-            answer: "most",
-            explanation: "多音節形容詞最高級需在前面加 most。"
         }
     ]
 };

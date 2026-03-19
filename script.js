@@ -24,13 +24,14 @@ function backToModeSelection() {
     document.getElementById("setup-options").style.display = "none";
 }
 
-// --- 測驗開始 (修復數量與加載邏輯) ---
+// --- 測驗開始 ---
 async function startNewQuiz() {
     const start = parseInt(document.getElementById("start-lesson").value);
     const end = parseInt(document.getElementById("end-lesson").value);
     const amountVal = document.getElementById("quiz-amount").value;
     const amount = amountVal === "all" ? 999 : parseInt(amountVal);
     const useAi = document.getElementById("use-ai").checked;
+    // 檢查目前是否為文法模式
     const isGrammar = document.getElementById("selected-mode-label").innerText.includes("Grammar");
     const statusText = document.getElementById("status-text");
 
@@ -39,10 +40,9 @@ async function startNewQuiz() {
     statusText.innerText = "Loading...";
 
     if (isGrammar) {
+        // --- 文法模式邏輯 ---
         if (useAi) {
             statusText.innerText = "AI Generating Questions...";
-            
-            // --- 核心修正：根據 L1~L2 範圍抓取自定義文法重點 ---
             let hintParts = [];
             for (let i = start; i <= end; i++) {
                 const key = `L${i}`;
@@ -50,13 +50,10 @@ async function startNewQuiz() {
                     hintParts.push(`${key}重點：${grammarHints[key]}`);
                 }
             }
-            // 如果沒定義重點，則給予預設主題
             const topic = hintParts.length > 0 ? hintParts.join("；") : `國中英語 L${start} 到 L${end} 相關文法`;
-            
-            // 呼叫 API
             currentQueue = await fetchGrammarQuestions(topic, amount === 999 ? 10 : amount);
         } else {
-            // 靜態模式邏輯不變...
+            // 從 grammarBank 抓取靜態文法題
             for (let i = start; i <= end; i++) {
                 if (typeof grammarBank !== 'undefined' && grammarBank[`L${i}`]) {
                     currentQueue.push(...grammarBank[`L${i}`]);
@@ -65,8 +62,17 @@ async function startNewQuiz() {
             currentQueue = currentQueue.sort(() => 0.5 - Math.random()).slice(0, amount);
         }
     } else {
-        // 單字模式邏輯不變...
-        // ... (省略原有單字邏輯)
+        // --- 單字模式邏輯 (請確保這段與以下一致) ---
+        statusText.innerText = "Loading Vocabulary...";
+        for (let i = start; i <= end; i++) {
+            const key = `L${i}`;
+            // 關鍵點：單字模式必須強制只讀取 fullWordBank
+            if (typeof fullWordBank !== 'undefined' && fullWordBank[key]) {
+                currentQueue.push(...fullWordBank[key]);
+            }
+        }
+        // 隨機排序並根據數量切片
+        currentQueue = currentQueue.sort(() => 0.5 - Math.random()).slice(0, amount);
     }
 
     // --- 顯示題目邏輯 ---
@@ -76,8 +82,9 @@ async function startNewQuiz() {
         currentIndex = 0;
         score = 0;
         showQuestion();
+        statusText.innerText = "Playing";
     } else {
-        alert("無法獲取題目，請檢查網路或 grammarHints 設定。");
+        alert("無法獲取題目，請檢查資料庫 (data.js) 是否包含所選課次。");
         statusText.innerText = "Ready";
     }
 }

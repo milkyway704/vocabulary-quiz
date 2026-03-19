@@ -56,8 +56,7 @@ const grammarBank = {
             { q: "She is _____ more beautiful in person.", options: ["very", "even", "too", "so"], answer: "even", explanation: "even 可加強比較級語氣。" },
             { q: "Which mountain is _____, Ali Mountain or Jade Mountain?", options: ["high", "higher", "highest", "the highest"], answer: "higher", explanation: "兩者比較使用比較級。" },
             { q: "This pair of shoes is _____ than that pair.", options: ["cheap", "cheaper", "cheapest", "more cheap"], answer: "cheaper", explanation: "單音節形容詞直接加 er。" }
-        ]
-    };
+        ],
     "L2": [
         {
             q: "Winter is the _____ season of the year.",

@@ -82,7 +82,6 @@ async function startNewQuiz() {
         currentIndex = 0;
         score = 0;
         showQuestion();
-        statusText.innerText = "Playing";
     } else {
         alert("無法獲取題目，請檢查資料庫 (data.js) 是否包含所選課次。");
         statusText.innerText = "Ready";

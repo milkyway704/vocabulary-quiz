@@ -95,9 +95,16 @@ async function startNewQuiz() {
 
 // --- 顯示題目 ---
 function showQuestion() {
+    
     const item = currentQueue[currentIndex];
     const quizMode = document.getElementById("quiz-mode").value;
     const useAi = document.getElementById("use-ai").checked;
+
+// --- 核心修改：更新進度顯示 ---
+    const statusText = document.getElementById("status-text");
+    // 這裡會顯示例如 "Progress: 1 / 10"
+    statusText.innerText = `Progress: ${currentIndex + 1} / ${currentQueue.length}`;
+    // ----------------------------
 
     document.getElementById("feedback").innerText = "";
     document.getElementById("next-btn").style.display = "none";

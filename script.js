@@ -24,7 +24,7 @@ function backToModeSelection() {
     document.getElementById("setup-options").style.display = "none";
 }
 
-// --- 測驗開始 (核心優化：預載 AI 選項) ---
+// --- 測驗開始 (含預載 AI 邏輯) ---
 async function startNewQuiz() {
     const start = parseInt(document.getElementById("start-lesson").value);
     const end = parseInt(document.getElementById("end-lesson").value);
@@ -40,7 +40,6 @@ async function startNewQuiz() {
     statusText.innerText = "Loading...";
 
     if (isGrammar) {
-        // 【文法模式】直接由 AI 生成整批題目 (含選項)
         if (useAi) {
             statusText.innerText = "AI Generating Questions...";
             let hintParts = [];
@@ -61,7 +60,6 @@ async function startNewQuiz() {
             currentQueue = currentQueue.sort(() => 0.5 - Math.random()).slice(0, amount);
         }
     } else {
-        // 【單字模式】
         statusText.innerText = "Preparing Vocabulary...";
         let rawQueue = [];
         for (let i = start; i <= end; i++) {
@@ -70,20 +68,15 @@ async function startNewQuiz() {
                 rawQueue.push(...fullWordBank[key]);
             }
         }
-        // 先決定好要考哪些題
         currentQueue = rawQueue.sort(() => 0.5 - Math.random()).slice(0, amount);
 
-        // 如果是多選模式且開啟 AI：在此處「預載」所有選項
         if (useAi && quizMode === "multiple-choice") {
             statusText.innerText = `AI Pre-loading options (0/${currentQueue.length})...`;
-            
-            // 使用 Promise.all 並行請求以加快速度
             const prefetchTasks = currentQueue.map(async (item, index) => {
                 const distractors = await fetchAiDistractors(item.word);
-                item.aiOptions = [item.word, ...distractors]; // 將生成的選項存入該題目物件
-                statusText.innerText = `AI Pre-loading options (${index + 1}/${currentQueue.length})...`;
+                item.aiOptions = [item.word, ...distractors];
+                statusText.innerText = `AI Pre-loading ( ${index + 1}/${currentQueue.length} )...`;
             });
-
             await Promise.all(prefetchTasks);
         }
     }
@@ -91,31 +84,29 @@ async function startNewQuiz() {
     if (currentQueue && currentQueue.length > 0) {
         document.getElementById("setup-options").style.display = "none";
         document.getElementById("quiz-area").style.display = "block";
-        currentIndex = 0;
-        score = 0;
+        currentIndex = 0; score = 0;
         statusText.innerText = "Ready";
-        showQuestion(); // 此時已預載完成，不需要 await
+        showQuestion();
     } else {
-        alert("無法獲取題目，請檢查資料庫 (data.js) 是否包含所選課次。");
+        alert("無法獲取題目，請檢查資料庫。");
         statusText.innerText = "Ready";
     }
 }
 
-// --- 顯示題目 (邏輯簡化，因為資料已備妥) ---
+// --- 顯示題目 ---
 function showQuestion() {
     const item = currentQueue[currentIndex];
     const quizMode = document.getElementById("quiz-mode").value;
     const useAi = document.getElementById("use-ai").checked;
 
-    // UI 重置
     document.getElementById("feedback").innerText = "";
     document.getElementById("next-btn").style.display = "none";
-    document.getElementById("submit-btn").style.display = "block";
+    document.getElementById("submit-btn").style.display = (quizMode === "fill-in" ? "block" : "none");
+    
     const optionsContainer = document.getElementById("options-container");
     const userInput = document.getElementById("user-input");
     optionsContainer.innerHTML = "";
     
-    // 設定題目文字
     document.getElementById("sentence-text").innerText = item.q || item.question;
     document.getElementById("translation-text").innerText = item.sentenceTranslation || item.explanation || "";
 
@@ -124,83 +115,100 @@ function showQuestion() {
         userInput.style.display = "none";
         let options = [];
 
-        if (item.options && item.options.length > 0) {
-            // 優先使用題目內建選項 (文法題)
-            options = [...item.options];
-        } else if (useAi && item.aiOptions) {
-            // 使用預載好的 AI 選項 (單字題)
-            options = [...item.aiOptions];
-        } else {
-            // 沒開 AI 或 AI 失敗時的備案：隨機抓取
-            options = generateRandomDistractors(item.word);
-        }
+        if (item.options && item.options.length > 0) options = [...item.options];
+        else if (useAi && item.aiOptions) options = [...item.aiOptions];
+        else options = generateRandomDistractors(item.word);
 
         renderOptions(options, item.word || item.answer);
     } else {
-        // 填空模式
         optionsContainer.style.display = "none";
         userInput.style.display = "block";
+        userInput.disabled = false; // 確保填空框被啟用
         userInput.value = "";
         userInput.focus();
     }
 }
 
-// --- 以下其餘函式保持不變 ---
 function renderOptions(options, correctAnswer) {
     const container = document.getElementById("options-container");
-    // 複製並洗牌，確保選項位置隨機
     const shuffled = [...options].sort(() => 0.5 - Math.random());
     
     shuffled.forEach(opt => {
         const btn = document.createElement("button");
         btn.className = "option-btn";
         btn.innerText = opt;
-        btn.onclick = () => checkMultipleChoice(opt, correctAnswer);
+        btn.onclick = () => checkMultipleChoice(btn, opt, correctAnswer); // 傳入按鈕本身以進行樣式修改
         container.appendChild(btn);
     });
 }
 
-function generateRandomDistractors(correctWord) {
-    const allWords = [];
-    Object.values(fullWordBank).forEach(lesson => {
-        lesson.forEach(item => allWords.push(item.word));
-    });
-    
-    const distractors = [];
-    while (distractors.length < 3) {
-        const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
-        if (randomWord !== correctWord && !distractors.includes(randomWord)) {
-            distractors.push(randomWord);
-        }
+// --- 檢查答案 (關鍵修正：鎖定按鈕) ---
+function checkMultipleChoice(selectedBtn, selectedText, correctText) {
+    // 1. 立即禁用所有選項按鈕，防止重複點擊
+    const allButtons = document.querySelectorAll(".option-btn");
+    allButtons.forEach(btn => btn.disabled = true);
+
+    if (selectedText.toLowerCase() === correctText.toLowerCase()) {
+        selectedBtn.style.backgroundColor = "#4CAF50"; // 答對變綠
+        selectedBtn.style.color = "white";
+        handleCorrect();
+    } else {
+        selectedBtn.style.backgroundColor = "#f44336"; // 答錯選項變紅
+        selectedBtn.style.color = "white";
+        
+        // 額外顯示正確答案是哪一個
+        allButtons.forEach(btn => {
+            if (btn.innerText.toLowerCase() === correctText.toLowerCase()) {
+                btn.style.border = "2px solid #4CAF50";
+                btn.style.color = "#4CAF50";
+            }
+        });
+        handleWrong(correctText);
     }
-    return [correctWord, ...distractors];
 }
 
 function checkAnswer() {
     const item = currentQueue[currentIndex];
-    const userAnswer = document.getElementById("user-input").value.trim().toLowerCase();
+    const userInput = document.getElementById("user-input");
+    const userAnswer = userInput.value.trim().toLowerCase();
     const correctAnswer = (item.word || item.answer).toLowerCase();
-    if (userAnswer === correctAnswer) handleCorrect();
-    else handleWrong(item.word || item.answer);
+
+    userInput.disabled = true; // 鎖定輸入框
+
+    if (userAnswer === correctAnswer) {
+        handleCorrect();
+    } else {
+        handleWrong(item.word || item.answer);
+    }
 }
 
-function checkMultipleChoice(selected, correct) {
-    if (selected.toLowerCase() === correct.toLowerCase()) handleCorrect();
-    else handleWrong(correct);
-}
-
+// --- 處理狀態 ---
 function handleCorrect() {
     score++;
-    document.getElementById("feedback").innerHTML = "<span style='color: #4CAF50'>Correct!</span>";
+    document.getElementById("feedback").innerHTML = "<span style='color: #4CAF50; font-weight: bold;'>Correct!</span>";
     document.getElementById("submit-btn").style.display = "none";
     document.getElementById("next-btn").style.display = "block";
 }
 
 function handleWrong(correctAnswer) {
     errorList.push(currentQueue[currentIndex]);
-    document.getElementById("feedback").innerHTML = `<span style='color: #f44336'>Wrong! Answer: ${correctAnswer}</span>`;
+    document.getElementById("feedback").innerHTML = `<span style='color: #f44336; font-weight: bold;'>Wrong! Answer: ${correctAnswer}</span>`;
     document.getElementById("submit-btn").style.display = "none";
     document.getElementById("next-btn").style.display = "block";
+}
+
+// --- 其餘輔助函式 ---
+function generateRandomDistractors(correctWord) {
+    const allWords = [];
+    Object.values(fullWordBank).forEach(lesson => {
+        lesson.forEach(item => allWords.push(item.word));
+    });
+    const distractors = [];
+    while (distractors.length < 3) {
+        const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
+        if (randomWord !== correctWord && !distractors.includes(randomWord)) distractors.push(randomWord);
+    }
+    return [correctWord, ...distractors];
 }
 
 function nextQuestion() {

@@ -24,7 +24,7 @@ function backToModeSelection() {
     document.getElementById("setup-options").style.display = "none";
 }
 
-// --- 測驗開始 ---
+// --- 測驗開始 (核心優化：預載 AI 選項) ---
 async function startNewQuiz() {
     const start = parseInt(document.getElementById("start-lesson").value);
     const end = parseInt(document.getElementById("end-lesson").value);
@@ -32,6 +32,7 @@ async function startNewQuiz() {
     const amount = amountVal === "all" ? 999 : parseInt(amountVal);
     const useAi = document.getElementById("use-ai").checked;
     const isGrammar = document.getElementById("selected-mode-label").innerText.includes("Grammar");
+    const quizMode = document.getElementById("quiz-mode").value;
     const statusText = document.getElementById("status-text");
 
     currentQueue = [];
@@ -39,7 +40,7 @@ async function startNewQuiz() {
     statusText.innerText = "Loading...";
 
     if (isGrammar) {
-        // 文法模式：如果用 AI，直接生成整批題目
+        // 【文法模式】直接由 AI 生成整批題目 (含選項)
         if (useAi) {
             statusText.innerText = "AI Generating Questions...";
             let hintParts = [];
@@ -60,15 +61,31 @@ async function startNewQuiz() {
             currentQueue = currentQueue.sort(() => 0.5 - Math.random()).slice(0, amount);
         }
     } else {
-        // 單字模式：題目從 Bank 抓，AI 功能移到 showQuestion 生成干擾項
-        statusText.innerText = "Loading Vocabulary...";
+        // 【單字模式】
+        statusText.innerText = "Preparing Vocabulary...";
+        let rawQueue = [];
         for (let i = start; i <= end; i++) {
             const key = `L${i}`;
             if (typeof fullWordBank !== 'undefined' && fullWordBank[key]) {
-                currentQueue.push(...fullWordBank[key]);
+                rawQueue.push(...fullWordBank[key]);
             }
         }
-        currentQueue = currentQueue.sort(() => 0.5 - Math.random()).slice(0, amount);
+        // 先決定好要考哪些題
+        currentQueue = rawQueue.sort(() => 0.5 - Math.random()).slice(0, amount);
+
+        // 如果是多選模式且開啟 AI：在此處「預載」所有選項
+        if (useAi && quizMode === "multiple-choice") {
+            statusText.innerText = `AI Pre-loading options (0/${currentQueue.length})...`;
+            
+            // 使用 Promise.all 並行請求以加快速度
+            const prefetchTasks = currentQueue.map(async (item, index) => {
+                const distractors = await fetchAiDistractors(item.word);
+                item.aiOptions = [item.word, ...distractors]; // 將生成的選項存入該題目物件
+                statusText.innerText = `AI Pre-loading options (${index + 1}/${currentQueue.length})...`;
+            });
+
+            await Promise.all(prefetchTasks);
+        }
     }
 
     if (currentQueue && currentQueue.length > 0) {
@@ -76,19 +93,19 @@ async function startNewQuiz() {
         document.getElementById("quiz-area").style.display = "block";
         currentIndex = 0;
         score = 0;
-        await showQuestion(); // 這裡要用 await
+        statusText.innerText = "Ready";
+        showQuestion(); // 此時已預載完成，不需要 await
     } else {
         alert("無法獲取題目，請檢查資料庫 (data.js) 是否包含所選課次。");
         statusText.innerText = "Ready";
     }
 }
 
-// --- 顯示題目 (核心修改：處理單字模式 AI 選項) ---
-async function showQuestion() {
+// --- 顯示題目 (邏輯簡化，因為資料已備妥) ---
+function showQuestion() {
     const item = currentQueue[currentIndex];
     const quizMode = document.getElementById("quiz-mode").value;
     const useAi = document.getElementById("use-ai").checked;
-    const statusText = document.getElementById("status-text");
 
     // UI 重置
     document.getElementById("feedback").innerText = "";
@@ -107,18 +124,14 @@ async function showQuestion() {
         userInput.style.display = "none";
         let options = [];
 
-        // 判斷選項來源
         if (item.options && item.options.length > 0) {
-            // 如果題目本身就有選項 (文法題)
+            // 優先使用題目內建選項 (文法題)
             options = [...item.options];
-        } else if (useAi) {
-            // 單字模式且開啟 AI
-            statusText.innerText = "AI Generating Distractors...";
-            const distractors = await fetchAiDistractors(item.word);
-            options = [item.word, ...distractors];
-            statusText.innerText = "Ready";
+        } else if (useAi && item.aiOptions) {
+            // 使用預載好的 AI 選項 (單字題)
+            options = [...item.aiOptions];
         } else {
-            // 單字模式但沒開 AI，隨機抓取
+            // 沒開 AI 或 AI 失敗時的備案：隨機抓取
             options = generateRandomDistractors(item.word);
         }
 
@@ -132,12 +145,13 @@ async function showQuestion() {
     }
 }
 
+// --- 以下其餘函式保持不變 ---
 function renderOptions(options, correctAnswer) {
     const container = document.getElementById("options-container");
-    // 隨機排序選項
-    options.sort(() => 0.5 - Math.random());
+    // 複製並洗牌，確保選項位置隨機
+    const shuffled = [...options].sort(() => 0.5 - Math.random());
     
-    options.forEach(opt => {
+    shuffled.forEach(opt => {
         const btn = document.createElement("button");
         btn.className = "option-btn";
         btn.innerText = opt;
@@ -147,7 +161,6 @@ function renderOptions(options, correctAnswer) {
 }
 
 function generateRandomDistractors(correctWord) {
-    // 從 fullWordBank 隨機抓取 3 個不重複單字
     const allWords = [];
     Object.values(fullWordBank).forEach(lesson => {
         lesson.forEach(item => allWords.push(item.word));
@@ -163,25 +176,17 @@ function generateRandomDistractors(correctWord) {
     return [correctWord, ...distractors];
 }
 
-// --- 檢查答案 ---
 function checkAnswer() {
     const item = currentQueue[currentIndex];
     const userAnswer = document.getElementById("user-input").value.trim().toLowerCase();
     const correctAnswer = (item.word || item.answer).toLowerCase();
-
-    if (userAnswer === correctAnswer) {
-        handleCorrect();
-    } else {
-        handleWrong(item.word || item.answer);
-    }
+    if (userAnswer === correctAnswer) handleCorrect();
+    else handleWrong(item.word || item.answer);
 }
 
 function checkMultipleChoice(selected, correct) {
-    if (selected.toLowerCase() === correct.toLowerCase()) {
-        handleCorrect();
-    } else {
-        handleWrong(correct);
-    }
+    if (selected.toLowerCase() === correct.toLowerCase()) handleCorrect();
+    else handleWrong(correct);
 }
 
 function handleCorrect() {
@@ -200,54 +205,40 @@ function handleWrong(correctAnswer) {
 
 function nextQuestion() {
     currentIndex++;
-    if (currentIndex < currentQueue.length) {
-        showQuestion();
-    } else {
-        showResult();
-    }
+    if (currentIndex < currentQueue.length) showQuestion();
+    else showResult();
 }
 
 function showResult() {
     document.getElementById("quiz-area").style.display = "none";
     document.getElementById("result-area").style.display = "block";
     document.getElementById("score-text").innerText = `Score: ${score} / ${currentQueue.length}`;
-    
     const tbody = document.getElementById("mistake-table-body");
     tbody.innerHTML = errorList.length ? "" : "<tr><td colspan='2'>No mistakes! 🎉</td></tr>";
-    
     errorList.forEach(item => {
         tbody.innerHTML += `<tr><td>${item.word || item.answer}</td><td>${item.t || "Grammar Review"}</td></tr>`;
     });
-    
     document.getElementById("review-btn").style.display = errorList.length ? "block" : "none";
 }
 
 function startReview() {
     currentQueue = [...errorList];
     errorList = [];
-    currentIndex = 0;
-    score = 0;
+    currentIndex = 0; score = 0;
     document.getElementById("result-area").style.display = "none";
     document.getElementById("quiz-area").style.display = "block";
     showQuestion();
 }
 
-function exitQuiz() {
-    if (confirm("Quit this quiz?")) {
-        location.reload();
-    }
-}
+function exitQuiz() { if (confirm("Quit this quiz?")) location.reload(); }
 
-// 支援 Enter 鍵
 document.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
         const nextBtn = document.getElementById("next-btn");
         const submitBtn = document.getElementById("submit-btn");
-        if (nextBtn.style.display === "block") {
-            nextQuestion();
-        } else if (submitBtn.style.display === "block") {
-            const quizMode = document.getElementById("quiz-mode").value;
-            if (quizMode === "fill-in") checkAnswer();
+        if (nextBtn.style.display === "block") nextQuestion();
+        else if (submitBtn.style.display === "block") {
+            if (document.getElementById("quiz-mode").value === "fill-in") checkAnswer();
         }
     }
 });

@@ -60,7 +60,7 @@ h2, h3 { margin-top: 0; color: #2c3e50; text-align: center; }
 }
 
 .sentence { font-size: 1.4rem; margin-bottom: 10px; color: #2c3e50; line-height: 1.4; }
-.translation {
+/*.translation {
     color: #666;
     font-size: 1.1rem;
     margin-bottom: 20px;
@@ -68,6 +68,25 @@ h2, h3 { margin-top: 0; color: #2c3e50; text-align: center; }
     padding-left: 12px;
     background: #f8f9fa;
     padding: 8px;
+}*/
+
+/* 預設的翻譯樣式：模糊且半透明，提示可以點擊 */
+.translation {
+    cursor: pointer;
+    background-color: #f0f0f0;
+    color: transparent;
+    text-shadow: 0 0 8px rgba(0,0,0,0.5); /* 模糊效果 */
+    transition: all 0.3s ease;
+    padding: 5px 10px;
+    border-radius: 4px;
+    user-select: none; /* 防止學生用選取的方式偷看 */
+}
+
+/* 當加上 .show 類別時，恢復正常顯示 */
+.translation.show {
+    background-color: transparent;
+    color: #666;
+    text-shadow: none;
 }
 
 /* --- Setup Rows --- */

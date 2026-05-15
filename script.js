@@ -97,10 +97,22 @@ async function startNewQuiz() {
 function showQuestion() {
     
     const item = currentQueue[currentIndex];
+    const translationElement = document.getElementById("translation-text");
+
+    // 1. 初始化翻譯文字與樣式
+    translationElement.innerText = "點擊顯示中文翻譯 / Click to show translation";
+    translationElement.classList.remove("show"); // 確保換題時重設為隱藏
+
+    // 2. 綁定點擊事件 (只點擊一次就顯示真正的翻譯)
+    translationElement.onclick = function() {
+        this.innerText = item.sentenceTranslation || item.explanation || "No translation available.";
+        this.classList.add("show");
+    };
+
     const quizMode = document.getElementById("quiz-mode").value;
     const useAi = document.getElementById("use-ai").checked;
 
-// --- 核心修改：更新進度顯示 ---
+    // --- 核心修改：更新進度顯示 ---
     const statusText = document.getElementById("status-text");
     // 這裡會顯示例如 "Progress: 1 / 10"
     statusText.innerText = `Progress: ${currentIndex + 1} / ${currentQueue.length}`;

@@ -95,39 +95,46 @@ async function startNewQuiz() {
 
 // --- 顯示題目 ---
 function showQuestion() {
-    
     const item = currentQueue[currentIndex];
-    const translationElement = document.getElementById("translation-text");
-
-    // 1. 初始化翻譯文字與樣式
-    translationElement.innerText = "點擊顯示中文翻譯 / Click to show translation";
-    translationElement.classList.remove("show"); // 確保換題時重設為隱藏
-
-    // 2. 綁定點擊事件 (只點擊一次就顯示真正的翻譯)
-    translationElement.onclick = function() {
-        this.innerText = item.sentenceTranslation || item.explanation || "No translation available.";
-        this.classList.add("show");
-    };
-
     const quizMode = document.getElementById("quiz-mode").value;
     const useAi = document.getElementById("use-ai").checked;
 
-    // --- 核心修改：更新進度顯示 ---
+    // 更新進度顯示
     const statusText = document.getElementById("status-text");
-    // 這裡會顯示例如 "Progress: 1 / 10"
     statusText.innerText = `Progress: ${currentIndex + 1} / ${currentQueue.length}`;
-    // ----------------------------
 
+    // UI 重置
     document.getElementById("feedback").innerText = "";
     document.getElementById("next-btn").style.display = "none";
     document.getElementById("submit-btn").style.display = (quizMode === "fill-in" ? "block" : "none");
     
     const optionsContainer = document.getElementById("options-container");
     const userInput = document.getElementById("user-input");
+    const translationElement = document.getElementById("translation-text");
     optionsContainer.innerHTML = "";
     
+    // 設定題目英文
     document.getElementById("sentence-text").innerText = item.q || item.question;
-    document.getElementById("translation-text").innerText = item.sentenceTranslation || item.explanation || "";
+
+    // --- 核心修正：根據模式判斷翻譯是否隱藏 ---
+    if (quizMode === "fill-in") {
+        // 填空模式：直接顯示真實翻譯，移除點擊事件，並加上 .show 樣式解除模糊
+        translationElement.innerText = item.sentenceTranslation || item.explanation || "";
+        translationElement.classList.add("show");
+        translationElement.onclick = null; // 清除點擊事件
+        translationElement.style.cursor = "default"; // 改回一般游標
+    } else {
+        // 多選模式：維持隱藏，點擊後才顯示
+        translationElement.innerText = "點擊顯示中文翻譯 / Click to show translation";
+        translationElement.classList.remove("show"); // 恢復模糊
+        translationElement.style.cursor = "pointer"; // 手勢游標
+        
+        translationElement.onclick = function() {
+            this.innerText = item.sentenceTranslation || item.explanation || "No translation available.";
+            this.classList.add("show");
+        };
+    }
+    // --------------------------------------------
 
     if (quizMode === "multiple-choice") {
         optionsContainer.style.display = "grid";
@@ -142,7 +149,7 @@ function showQuestion() {
     } else {
         optionsContainer.style.display = "none";
         userInput.style.display = "block";
-        userInput.disabled = false; // 確保填空框被啟用
+        userInput.disabled = false;
         userInput.value = "";
         userInput.focus();
     }
@@ -214,6 +221,12 @@ function handleWrong(correctAnswer) {
     document.getElementById("feedback").innerHTML = `<span style='color: #f44336; font-weight: bold;'>Wrong! Answer: ${correctAnswer}</span>`;
     document.getElementById("submit-btn").style.display = "none";
     document.getElementById("next-btn").style.display = "block";
+
+    // 【新增】不論什麼模式，答錯了就強制翻開正確翻譯給學生看
+    const trans = document.getElementById("translation-text");
+    const item = currentQueue[currentIndex];
+    trans.innerText = item.sentenceTranslation || item.explanation || "";
+    trans.classList.add("show");
 }
 
 // --- 其餘輔助函式 ---
